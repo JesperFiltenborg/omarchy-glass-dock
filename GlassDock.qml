@@ -103,6 +103,7 @@ Item {
     function hide(): void { settingsStore.cfg.showDock = false }
     function pin(appId: string): void { if (!settingsStore.isPinned(appId)) settingsStore.togglePin(appId) }
     function unpin(appId: string): void { if (settingsStore.isPinned(appId)) settingsStore.togglePin(appId) }
+    function forceQuit(appId: string): void { windowModel.forceQuitApp(appId) }
     function pinFocused(): void {
       const id = windowModel.activeAppId
       if (id && !settingsStore.isPinned(id)) settingsStore.togglePin(id)
