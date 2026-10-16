@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.2 — 2026-10-17
+
+- **Security:** window titles and app names are now always shown as plain
+  text. Before, they were rendered as rich text, so a web page could set its
+  tab title to markup such as `<img src="https://…">` and make the shell load
+  that URL when the title appeared in a window preview, the Alt+Tab switcher
+  or the right-click menu. Every text label now uses plain text, and a
+  contract test enforces it. Reported in the Omarchy plugin marketplace
+  review.
+
 ## 1.2.1 — 2026-10-17
 
 No changes to the plugin itself; this release prepares the Omarchy plugin

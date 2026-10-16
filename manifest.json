@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "jesperfiltenborg.glassdock",
   "name": "Glass Dock",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "author": "Jesper Filtenborg",
   "license": "MIT",
   "description": "Liquid-glass application dock with per-app window groups, live window previews, and an Alt+Tab switcher.",
