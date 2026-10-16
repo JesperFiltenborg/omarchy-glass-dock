@@ -144,7 +144,7 @@ For a released bug that can't wait:
 
 ## Local checks
 
-`scripts/setup-dev.sh` enables two git hooks:
+`scripts/dev-init.sh` enables two git hooks:
 
 - **pre-commit** runs lint and the unit tests.
 - **commit-msg** rejects messages that aren't Conventional Commits.

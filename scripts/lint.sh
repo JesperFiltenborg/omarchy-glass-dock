@@ -4,7 +4,7 @@
 #   scripts/lint.sh          check only (what CI and the pre-commit hook run)
 #   scripts/lint.sh --fix    apply formatters and safe fixes, then check
 #
-# Tools (Arch: sudo pacman -S --needed shellcheck shfmt stylua luacheck biome):
+# Tools (Arch packages shellcheck shfmt stylua luacheck biome; see docs/STYLE_GUIDE.md):
 #   all files   tests/tools/check-style.mjs  whitespace, indentation, line length
 #   QML         tests/tools/lint-qml.mjs     qmllint gate (qt6-declarative)
 #   JavaScript  biome                         format + lint
@@ -97,7 +97,7 @@ if ((${#failed[@]})); then
 fi
 if ((${#skipped[@]})); then
   echo "${yellow}lint passed, but skipped: ${skipped[*]}${reset}"
-  echo "install: sudo pacman -S --needed shellcheck shfmt stylua luacheck biome"
+  echo "the Arch packages are: shellcheck shfmt stylua luacheck biome (see docs/STYLE_GUIDE.md)"
 else
   echo "${green}${bold}lint passed${reset}"
 fi

@@ -256,9 +256,10 @@ scripts/test.sh e2e --sync # install the working tree first, then smoke test
 
 You need Node 20 or newer, Lua 5.4, `qmllint` (from `qt6-declarative`),
 `quickshell` (for its QML type info) and `jq`. An Omarchy install already has
-all of these except possibly Lua. For linting you also need
-`sudo pacman -S --needed shellcheck shfmt stylua luacheck biome`.
-`scripts/setup-dev.sh` enables a pre-commit hook that runs lint and the unit
+all of these except possibly Lua. For linting you also need the Arch packages
+`shellcheck`, `shfmt`, `stylua`, `luacheck` and `biome` (the install command
+is in [docs/STYLE_GUIDE.md](docs/STYLE_GUIDE.md)).
+`scripts/dev-init.sh` enables a pre-commit hook that runs lint and the unit
 tests.
 
 | Suite      | What it covers |

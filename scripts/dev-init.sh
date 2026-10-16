@@ -19,7 +19,7 @@ if ((${#missing[@]})); then
   packages=()
   for tool in "${missing[@]}"; do packages+=("${package[$tool]:-$tool}"); done
   echo "missing: ${missing[*]}"
-  echo "install: sudo pacman -S --needed $(printf '%s\n' "${packages[@]}" | sort -u | tr '\n' ' ')"
+  echo "Arch packages to install: $(printf '%s\n' "${packages[@]}" | sort -u | tr '\n' ' ')"
 else
   echo "all tools present"
 fi
