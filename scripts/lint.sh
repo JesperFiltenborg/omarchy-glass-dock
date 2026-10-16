@@ -20,6 +20,13 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 fix=0
 [[ ${1:-} == --fix ]] && fix=1
 
+# Every file list below comes from git. If git can't read the repo, the
+# linters would get empty lists and "pass", so stop here instead.
+if ! git ls-files --error-unmatch README.md >/dev/null; then
+  echo "lint: git can't list the repo's files (see the error above)" >&2
+  exit 1
+fi
+
 bold=$'\e[1m' green=$'\e[32m' red=$'\e[31m' yellow=$'\e[33m' reset=$'\e[0m'
 [[ -t 1 ]] || bold="" green="" red="" yellow="" reset=""
 

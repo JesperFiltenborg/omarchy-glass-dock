@@ -18,6 +18,11 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      # The checkout belongs to another uid than the container's root, and git
+      # refuses to list files in it ("dubious ownership") without this.
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Lint, static checks, unit tests, Lua tests
         env:
           LINT_STRICT: "1"
