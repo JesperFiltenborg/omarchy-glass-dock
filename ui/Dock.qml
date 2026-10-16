@@ -389,6 +389,7 @@ PanelWindow {
         tint: win.theme.tintStrong
       }
       Text {
+        textFormat: Text.PlainText
         id: label
         anchors.centerIn: parent
         text: win.dock.apps.nameFor(win.popupAppId)

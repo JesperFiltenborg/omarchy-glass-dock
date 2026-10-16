@@ -38,6 +38,7 @@ Item {
       spacing: 8
       leftPadding: 4
       Text {
+        textFormat: Text.PlainText
         text: root.dock.apps.nameFor(root.appId)
         color: root.theme.text
         font.family: root.theme.fontFamily
@@ -45,6 +46,7 @@ Item {
         font.bold: true
       }
       Text {
+        textFormat: Text.PlainText
         visible: root.windows.length > 1
         text: root.windows.length + " windows"
         color: root.theme.alpha(root.theme.text, 0.6)

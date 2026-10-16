@@ -88,6 +88,7 @@ Item {
     spacing: 2
 
     Text {
+      textFormat: Text.PlainText
       width: parent.width
       text: root.dock.apps.nameFor(root.appId)
       elide: Text.ElideRight
@@ -97,6 +98,7 @@ Item {
       font.bold: true
     }
     Text {
+      textFormat: Text.PlainText
       width: parent.width
       text: root.shownWindow ? (root.shownWindow.title || "") : ""
       elide: Text.ElideRight
@@ -117,6 +119,7 @@ Item {
     radius: root.theme.r(11)
     color: root.theme.accent
     Text {
+      textFormat: Text.PlainText
       id: badge
       anchors.centerIn: parent
       text: root.count

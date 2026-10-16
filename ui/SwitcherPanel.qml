@@ -135,6 +135,7 @@ PanelWindow {
         spacing: 8
 
         Text {
+          textFormat: Text.PlainText
           anchors.horizontalCenter: parent.horizontalCenter
           text: (sw.windowIndex + 1) + " / " + sw.selectedWindows.length + "  ·  ↑ ↓ to switch window"
           color: root.theme.alpha(root.theme.text, 0.6)
