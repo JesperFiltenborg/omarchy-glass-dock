@@ -21,11 +21,13 @@ pull request.
 ```bash
 git clone https://github.com/JesperFiltenborg/omarchy-glass-dock.git
 cd omarchy-glass-dock
-scripts/setup-dev.sh        # enables the pre-commit hook and lists missing tools
+scripts/setup-dev.sh        # enables the git hooks and lists missing tools
 scripts/dev-sync.sh         # installs your working tree into Omarchy and restarts the shell
 ```
 
-Then follow the loop:
+Create a branch named `<type>/<topic>`, such as `feat/show-delay` or
+`fix/alt-tab-focus`. Branch names, commit messages and releases are covered in
+[docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md). Then follow the loop:
 
 1. **Edit.** Put rules (ordering, matching, geometry, timing) in pure
    functions in `core/lib/*.mjs` and keep QML for state and views. See
@@ -45,9 +47,14 @@ settings window control). `tests/unit/contract.test.mjs` checks this.
 
 ## Pull requests
 
+- Commit with [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+  (`fix(switcher): keep focus on cancel`). The `commit-msg` hook checks this.
+- The PR title is a Conventional Commit header too. PRs are squash-merged, so
+  the title becomes the commit on `main`.
 - Keep each PR focused on one change, explain why in the description, and
   include screenshots for UI changes.
-- CI must be green: it runs `scripts/test.sh` with strict linting on Arch.
+- CI must be green: `test` runs `scripts/test.sh` with strict linting on Arch,
+  and `conventions` checks the PR title and branch name.
 - Say what you tested by hand. Real key presses and clicks can't be
   automated, so mention whether you tried Alt+Tab, hover and clicks.
 

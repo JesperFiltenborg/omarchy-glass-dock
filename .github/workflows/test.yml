@@ -27,3 +27,22 @@ jobs:
         env:
           LINT_STRICT: "1"
         run: scripts/test.sh
+
+  # Pull requests are squash-merged under their title, so the title becomes the
+  # commit on main: both it and the branch name must follow docs/GIT_WORKFLOW.md.
+  conventions:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: PR title is a Conventional Commit
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: node tests/tools/conventional.mjs title "$TITLE"
+      - name: Branch name follows the schema
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: node tests/tools/conventional.mjs branch "$BRANCH"

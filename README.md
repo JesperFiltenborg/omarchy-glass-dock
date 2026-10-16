@@ -263,8 +263,9 @@ QML (`import "lib/x.mjs" as X`), and add a test in `tests/unit/`.
 ## Contributing
 
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
-workflow, [docs/STYLE_GUIDE.md](docs/STYLE_GUIDE.md) for code style and
-linting, and the [Code of Conduct](CODE_OF_CONDUCT.md).
+workflow, [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) for branch names,
+Conventional Commits and releases, [docs/STYLE_GUIDE.md](docs/STYLE_GUIDE.md)
+for code style and linting, and the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Credits
 
