@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.1 — 2026-10-17
+
+No changes to the plugin itself; this release prepares the Omarchy plugin
+marketplace listing and the project's contribution workflow.
+
+- README: a **Requirements** section (Omarchy 4, Hyprland 0.55+ with the Lua
+  config), a preview image (`preview.png`, also used by the marketplace) and
+  an Alt+Tab switcher screenshot.
+- GitHub issue templates: a bug report form, with blank issues turned off.
+- Git workflow (`docs/GIT_WORKFLOW.md`): Conventional Commits, branch names
+  (`feat/`, `fix/`, `hotfix/`, `release/`, `docs/`, `chore/`), squash-merged
+  pull requests into a protected `main`. A `commit-msg` hook and a
+  `conventions` CI check enforce it.
+- CI: git refused to list files in the Arch container ("dubious ownership"),
+  so lint checked nothing and failed. This is why the `v1.2.0` tag's build is
+  red; its code is the same as 1.2.1's. Push builds now run only for `main`
+  and release tags.
+
 ## 1.2.0 — 2026-10-17
 
 - **Show/hide key.** Super+Alt+D hides or shows the dock. Change it in Dock
