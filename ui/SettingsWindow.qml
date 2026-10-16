@@ -49,6 +49,7 @@ PanelWindow {
   // ---- controls -----------------------------------------------------------------
 
   component Label: Text {
+    textFormat: Text.PlainText
     color: root.theme.text
     font.family: root.theme.fontFamily
     font.pixelSize: root.theme.fontSize
@@ -73,6 +74,7 @@ PanelWindow {
       color: headerMouse.containsMouse ? root.theme.alpha(root.theme.text, 0.05) : "transparent"
 
       Text {
+        textFormat: Text.PlainText
         id: chevron
         anchors.left: parent.left
         anchors.leftMargin: 12
@@ -85,6 +87,7 @@ PanelWindow {
         Behavior on rotation { enabled: root.theme.animate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
       }
       Text {
+        textFormat: Text.PlainText
         anchors.left: chevron.right
         anchors.leftMargin: 10
         anchors.verticalCenter: parent.verticalCenter

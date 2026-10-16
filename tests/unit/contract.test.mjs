@@ -4,7 +4,7 @@
 
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 
 const root = new URL("../../", import.meta.url)
 const read = path => readFileSync(new URL(path, root), "utf8")
@@ -90,5 +90,51 @@ describe("release contract", () => {
   it("the IPC target used by the Hyprland snippet exists", () => {
     const target = read("GlassDock.qml").match(/target: "([^"]+)"/)[1]
     assert.match(read("hypr/glassdock.lua"), new RegExp(`omarchy-shell -q ${target} `))
+  })
+})
+
+// Window titles and app names come from other programs (a web page sets its
+// tab's title). Rich text would let them load remote images or inject markup,
+// so every Text renders plain text. The settings window's Label sets it once.
+describe("text rendering contract", () => {
+  const qmlFiles = readdirSync(new URL("ui/", root))
+    .filter(name => name.endsWith(".qml"))
+    .map(name => `ui/${name}`)
+    .concat(["GlassDock.qml"])
+
+  /** The body of each `Text {` / `component X: Text {` block, by brace counting. */
+  function textBlocks(source) {
+    const blocks = []
+    for (const m of source.matchAll(/^\s*(?:component \w+: )?Text \{/gm)) {
+      let depth = 0
+      let end = m.index
+      for (let i = m.index + m[0].length - 1; i < source.length; i++) {
+        if (source[i] === "{") depth++
+        else if (source[i] === "}" && --depth === 0) {
+          end = i
+          break
+        }
+      }
+      blocks.push({ line: source.slice(0, m.index).split("\n").length + 1, body: source.slice(m.index, end) })
+    }
+    return blocks
+  }
+
+  it("found the Text items (sanity check of this test's parsing)", () => {
+    const total = qmlFiles.reduce((n, file) => n + textBlocks(read(file)).length, 0)
+    assert.ok(total >= 10, `only found ${total} Text items`)
+  })
+
+  it("every Text renders plain text", () => {
+    for (const file of qmlFiles) {
+      for (const block of textBlocks(read(file))) {
+        assert.match(block.body, /^\s*textFormat: Text\.PlainText\b/m, `${file}:${block.line}`)
+      }
+    }
+  })
+
+  it("nothing switches a Label back to rich text", () => {
+    for (const file of qmlFiles)
+      assert.doesNotMatch(read(file), /textFormat: Text\.(RichText|StyledText|AutoText|MarkdownText)/, file)
   })
 })

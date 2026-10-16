@@ -66,6 +66,7 @@ scripts/             dev-sync.sh (install + restart), test.sh, dev-tools.sh (ins
 | `wtype` key presses do nothing | Hyprland ignores binds from virtual keyboards | Drive the switcher with IPC (`next`, `nextWindow`, `commit`, `cancel`) |
 | A bind added with `hyprctl eval` vanishes | `hyprctl reload` drops runtime binds | `ToggleKey.qml` re-applies on the `configreloaded` event; do the same for any runtime bind |
 | A combo can't be recorded in the settings window | Hyprland handles bound combos before any client sees them | Expected; the recorder suspends only our own bind while it listens |
+| A window title loads a remote image or shows markup | A `Text` defaults to `AutoText`, which renders rich text such as `<img src=…>` from window titles and app names | Every `Text` sets `textFormat: Text.PlainText` (the contract test enforces it) |
 | qmllint floods warnings | It can't resolve `qs.Commons`, `qs.Ui` or Quickshell types outside the shell | Use `node tests/tools/lint-qml.mjs`, which fails only on real errors |
 
 ## Development loop

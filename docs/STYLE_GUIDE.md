@@ -39,6 +39,11 @@ whitespace rules below plus the conventions in this guide.
   functions, timers and `Connections`, then child items.
 - Each `id` is unique within the file and never equal to a property name a
   child declares; the dock window is `win`, not `bar`.
+- Every `Text` sets `textFormat: Text.PlainText` as its first property (the
+  settings window's `Label` does this for its users). Window titles and app
+  names come from other programs, and Qt's default `AutoText` would render
+  markup in them, including remote `<img>` sources. A contract test fails on
+  any `Text` without it.
 - One property per line in multi-line objects. Small controls may sit on one
   line (`Slider { from: 0; to: 48; … }`) if the line fits in 140 columns;
   otherwise use one property per line.

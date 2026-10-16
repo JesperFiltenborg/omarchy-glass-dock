@@ -33,6 +33,7 @@ Item {
       : "transparent"
 
     Text {
+      textFormat: Text.PlainText
       anchors.left: parent.left
       anchors.right: detailText.left
       anchors.leftMargin: 10
@@ -46,6 +47,7 @@ Item {
       font.bold: row.emphasized
     }
     Text {
+      textFormat: Text.PlainText
       id: detailText
       anchors.right: parent.right
       anchors.rightMargin: 10
@@ -101,6 +103,7 @@ Item {
         source: root.dock.apps.iconFor(root.appId)
       }
       Text {
+        textFormat: Text.PlainText
         anchors.left: headerIcon.right
         anchors.leftMargin: 10
         anchors.right: parent.right

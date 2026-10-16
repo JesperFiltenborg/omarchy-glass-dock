@@ -64,6 +64,7 @@ Item {
   }
 
   Text {
+    textFormat: Text.PlainText
     visible: root.showTitle
     anchors.bottom: parent.bottom
     anchors.bottomMargin: 6
@@ -94,6 +95,7 @@ Item {
     border.width: 1
     border.color: root.theme.rimSoft
     Text {
+      textFormat: Text.PlainText
       id: wsText
       anchors.centerIn: parent
       text: root.workspaceLabel
@@ -130,6 +132,7 @@ Item {
     border.width: 1
     border.color: root.theme.rim
     Text {
+      textFormat: Text.PlainText
       anchors.centerIn: parent
       text: "✕"
       color: root.theme.text
