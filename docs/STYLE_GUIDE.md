@@ -2,7 +2,7 @@
 
 This page covers how code and docs are written in Glass Dock. The tools
 enforce most of it. Run `scripts/lint.sh --fix` before committing; the
-pre-commit hook (`scripts/setup-dev.sh`) and CI run `scripts/lint.sh` and
+pre-commit hook (`scripts/dev-init.sh`) and CI run `scripts/lint.sh` and
 fail on anything left.
 
 ## Tools

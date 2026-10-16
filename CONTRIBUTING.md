@@ -21,7 +21,7 @@ pull request.
 ```bash
 git clone https://github.com/JesperFiltenborg/omarchy-glass-dock.git
 cd omarchy-glass-dock
-scripts/setup-dev.sh        # enables the git hooks and lists missing tools
+scripts/dev-init.sh        # enables the git hooks and lists missing tools
 scripts/dev-sync.sh         # installs your working tree into Omarchy and restarts the shell
 ```
 

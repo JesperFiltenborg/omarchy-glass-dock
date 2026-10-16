@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pre-commit: lint and fast tests. Enable with scripts/setup-dev.sh.
+# Pre-commit: lint and fast tests. Enable with scripts/dev-init.sh.
 # Bypass once with `git commit --no-verify`.
 
 set -uo pipefail
