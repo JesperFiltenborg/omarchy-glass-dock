@@ -158,6 +158,36 @@ check "settings window opens" wait_layers glassdock-settings 1
 ipc closeSettings
 check "settings window closes" wait_layers glassdock-settings 0
 
+# ---- force quit --------------------------------------------------------------------
+
+# A throwaway terminal whose shell ignores TERM and HUP, i.e. one that a polite
+# close can't end. Focus goes back to the window that had it.
+probe_class=glassdock-e2e-probe
+probe_alive() { hyprctl clients -j | jq -e --arg c "$probe_class" 'any(.[]; .class == $c)' >/dev/null; }
+wait_probe() {
+  local want=$1
+  for _ in $(seq 1 40); do
+    if probe_alive; then [[ $want == up ]] && return 0; else [[ $want == gone ]] && return 0; fi
+    sleep 0.1
+  done
+  return 1
+}
+if command -v foot >/dev/null; then
+  focus_before=$(hyprctl activewindow -j | jq -r '.address // empty')
+  hyprctl dispatch "hl.dsp.exec_cmd(\"foot --app-id=$probe_class sh -c 'trap \\\"\\\" TERM HUP; sleep 60'\")" >/dev/null
+  if wait_probe up; then
+    probe_pid=$(hyprctl clients -j | jq -r --arg c "$probe_class" '.[] | select(.class == $c) | .pid')
+    ipc forceQuit "$probe_class"
+    check "forceQuit closes a window that ignores TERM" wait_probe gone
+    check "forceQuit ends its process" bash -c "sleep 0.3; ! kill -0 $probe_pid 2>/dev/null"
+  else
+    check "force quit probe window opened" false
+  fi
+  [[ -n $focus_before ]] && hyprctl dispatch "hl.dsp.focus({ window = \"address:$focus_before\" })" >/dev/null
+else
+  ok "foot not installed: force quit not checked"
+fi
+
 # ---- Hyprland integration ----------------------------------------------------------
 
 binds=$(hyprctl binds -j)

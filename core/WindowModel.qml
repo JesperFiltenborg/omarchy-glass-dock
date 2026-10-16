@@ -83,6 +83,17 @@ Item {
     for (const t of windowsOf(appId)) closeWindow(t)
   }
 
+  // Force quit: Hyprland kills the window's process (SIGKILL), for apps that
+  // ignore closeWindow. Unsaved work is lost.
+  function killWindow(t) {
+    if (!t || !t.address) return
+    Hyprland.dispatch(`hl.dsp.window.kill({ window = "${Logic.windowSelector(t.address)}" })`)
+  }
+
+  function forceQuitApp(appId) {
+    for (const t of windowsOf(appId)) killWindow(t)
+  }
+
   Connections {
     target: Hyprland
     function onActiveToplevelChanged() { root.touch(Hyprland.activeToplevel) }

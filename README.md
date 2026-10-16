@@ -22,7 +22,8 @@ Quickshell), with per-app **window groups**, **live window previews**, and an
   - Middle click opens a new window.
   - The mouse wheel cycles through the app's windows.
   - Right click opens a menu: jump to a window, new window, pin or unpin,
-    close all.
+    close all, or force quit an app that won't close (click twice to
+    confirm).
 - **Alt+Tab.** A glass overlay of your apps, most recently used first, with
   live previews. Tab moves between apps, and `` ` `` moves between the selected
   app's windows. Releasing Alt switches.
@@ -127,7 +128,7 @@ goes away by itself when the plugin is disabled or removed.
 | Dock     | Middle click              | New window                                              |
 | Dock     | Wheel                     | Cycle the app's windows                                 |
 | Dock     | Hover                     | Live previews of the app's windows                      |
-| Dock     | Right click               | Menu: windows, New Window, Keep in Dock, Dock Settings…, Close |
+| Dock     | Right click               | Menu: windows, New Window, Keep in Dock, Dock Settings…, Close, Force Quit |
 | Preview  | Click, middle click or ✕  | Focus, or close the window                              |
 | Anywhere | Alt+Tab, Alt+Shift+Tab    | Next or previous app                                    |
 | Anywhere | `` Alt+` ``, `` Alt+Shift+` `` | Next or previous window of the selected app        |
@@ -196,6 +197,7 @@ omarchy-shell glassdock <method> [arg]
 | `settings`, `openSettings`, `closeSettings` | Toggle, open or close the settings window    |
 | `toggle`, `show`, `hide`               | Show or hide the dock (saved as `showDock`)       |
 | `pin <appId>`, `unpin <appId>`, `pinFocused` | Manage pinned apps                          |
+| `forceQuit <appId>`                    | Kill every window of the app (SIGKILL through Hyprland); unsaved work is lost |
 | `state`                                | JSON dump of what the dock sees, for debugging    |
 | `config`                               | JSON dump of the settings the dock is running with |
 

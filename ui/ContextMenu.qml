@@ -1,7 +1,7 @@
 import QtQuick
 
 // Right-click menu for a dock item: jump to any of the app's windows, open a
-// new one, pin/unpin, or close them all.
+// new one, pin/unpin, close them all, or force quit the app.
 Item {
   id: root
 
@@ -13,6 +13,12 @@ Item {
   readonly property var windows: dock.windows.windowsOf(appId)
   readonly property bool pinned: dock.settings.isPinned(appId)
   readonly property int maxWindowRows: 8
+  // Force Quit asks twice: the first click arms it for a few seconds.
+  property bool forceQuitArmed: false
+  onAppIdChanged: {
+    disarmTimer.stop()
+    forceQuitArmed = false
+  }
 
   implicitWidth: 280
   implicitHeight: column.implicitHeight + 16
@@ -23,6 +29,8 @@ Item {
     property string detail: ""
     property bool destructive: false
     property bool emphasized: false
+    // Leave the menu open after the click (e.g. to confirm a second click).
+    property bool keepOpen: false
     signal triggered()
 
     width: column.width
@@ -63,8 +71,10 @@ Item {
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
       onClicked: {
+        // Read before triggering: the handler may change keepOpen.
+        const stay = row.keepOpen
         row.triggered()
-        root.bar.closePopups()
+        if (!stay) root.bar.closePopups()
       }
     }
   }
@@ -152,5 +162,27 @@ Item {
       label: root.windows.length > 1 ? "Close " + root.windows.length + " Windows" : "Close Window"
       onTriggered: root.dock.windows.closeApp(root.appId)
     }
+    MenuRow {
+      visible: root.windows.length > 0
+      destructive: true
+      keepOpen: !root.forceQuitArmed
+      label: root.forceQuitArmed ? "Click Again to Force Quit" : "Force Quit"
+      onTriggered: {
+        if (!root.forceQuitArmed) {
+          root.forceQuitArmed = true
+          disarmTimer.restart()
+          return
+        }
+        disarmTimer.stop()
+        root.forceQuitArmed = false
+        root.dock.windows.forceQuitApp(root.appId)
+      }
+    }
+  }
+
+  Timer {
+    id: disarmTimer
+    interval: 3000
+    onTriggered: root.forceQuitArmed = false
   }
 }
