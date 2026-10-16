@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "lib/settings.mjs" as Logic
 
 // User settings, persisted as JSON in ~/.config/omarchy/glassdock.json.
 // The file is created with defaults on first run and hot-reloads on edit.
@@ -57,21 +58,15 @@ Item {
   }
 
   function isPinned(appId) {
-    return adapter.pinned.indexOf(appId) !== -1
+    return Logic.isPinned(adapter.pinned, appId)
   }
 
   function togglePin(appId) {
-    const pinned = adapter.pinned.slice()
-    const at = pinned.indexOf(appId)
-    if (at === -1) pinned.push(appId)
-    else pinned.splice(at, 1)
-    adapter.pinned = pinned
+    adapter.pinned = Logic.togglePin(adapter.pinned, appId)
   }
 
   function movePinned(appId, toIndex) {
-    const pinned = adapter.pinned.filter(id => id !== appId)
-    pinned.splice(Math.max(0, Math.min(toIndex, pinned.length)), 0, appId)
-    adapter.pinned = pinned
+    adapter.pinned = Logic.movePinned(adapter.pinned, appId, toIndex)
   }
 
   FileView {

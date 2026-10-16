@@ -1,0 +1,19 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # Arch, like Omarchy: same Qt (qmllint) and Lua versions as users run.
+    container: archlinux:latest
+    steps:
+      - name: Install tools
+        run: pacman -Syu --noconfirm --needed git nodejs lua qt6-declarative jq
+
+      - uses: actions/checkout@v4
+
+      - name: Static checks, unit tests, Lua tests
+        run: scripts/test.sh

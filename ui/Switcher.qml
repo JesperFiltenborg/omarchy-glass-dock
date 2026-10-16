@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import "../core/lib/switcher.mjs" as Logic
 
 // Alt+Tab: a glass overlay of the dock's app groups in most-recently-used
 // order, each with a live preview. Tab moves between apps, ` moves between the
@@ -28,7 +29,7 @@ PanelWindow {
   property bool hoverArmed: false  // ignore the pointer until it moves after opening
 
   readonly property var selectedApp: apps[appIndex] || null
-  readonly property var selectedWindows: selectedApp ? selectedApp.windows.filter(w => w && w.address) : []
+  readonly property var selectedWindows: Logic.liveWindows(selectedApp)
   readonly property var selectedWindow: selectedWindows[windowIndex] || selectedWindows[0] || null
 
   visible: opened
@@ -50,34 +51,33 @@ PanelWindow {
 
   function begin(appStep, windowStep) {
     const list = dock.windows.switcherApps
-    if (!list.length) return
+    const start = Logic.initialSelection(list, appStep, windowStep)
+    if (!start) return
     apps = list
-    // The first entry is the focused app, so Alt+Tab lands on the one before it.
-    appIndex = appStep && list.length > 1 ? (appStep > 0 ? 1 : list.length - 1) : 0
-    const count = list[appIndex].windows.length
-    windowIndex = windowStep ? (windowStep > 0 ? 1 : count - 1) % count : 0
+    appIndex = start.appIndex
+    windowIndex = start.windowIndex
     opened = true
     revealed = false
     hoverArmed = false
     revealTimer.restart()
     hoverArmTimer.restart()
     // Alt was already released before this call arrived: switch straight away.
-    if (Date.now() - lastEarlyCommit < 300) commit()
+    if (Logic.isQuickTap(Date.now(), lastEarlyCommit)) commit()
   }
 
   function step(delta) {
     if (!opened) return begin(delta, 0)
     if (!apps.length) return
-    appIndex = ((appIndex + delta) % apps.length + apps.length) % apps.length
-    windowIndex = 0
+    const next = Logic.stepApp(appIndex, delta, apps.length)
+    appIndex = next.appIndex
+    windowIndex = next.windowIndex
     reveal()
   }
 
   function stepWindow(delta) {
     if (!opened) return begin(0, delta)
-    const n = selectedWindows.length
-    if (n < 2) return
-    windowIndex = ((windowIndex + delta) % n + n) % n
+    if (selectedWindows.length < 2) return
+    windowIndex = Logic.stepWindow(windowIndex, delta, selectedWindows.length)
     reveal()
   }
 
@@ -90,7 +90,7 @@ PanelWindow {
     if (!opened) {
       // Alt release reaches us twice (Hyprland release bind + our own key
       // handler); the late duplicate must not look like an early release.
-      if (Date.now() - lastClosed > 400) lastEarlyCommit = Date.now()
+      lastEarlyCommit = Logic.noteClosedCommit(Date.now(), lastClosed, lastEarlyCommit)
       return
     }
     const target = selectedWindow
@@ -170,16 +170,12 @@ PanelWindow {
     target: root.dock.windows
     function onSwitcherAppsChanged() {
       if (!root.opened) return
-      const live = root.dock.windows.switcherApps
-      const keep = root.apps
-        .map(a => live.find(l => l.appId === a.appId))
-        .filter(a => a)
-      if (!keep.length) return root.cancel()
-      const current = root.selectedApp ? root.selectedApp.appId : ""
-      root.apps = keep
-      const at = keep.findIndex(a => a.appId === current)
-      root.appIndex = at === -1 ? Math.min(root.appIndex, keep.length - 1) : at
-      root.windowIndex = Math.min(root.windowIndex, Math.max(0, root.selectedWindows.length - 1))
+      const next = Logic.reconcile(root.apps, root.dock.windows.switcherApps,
+        root.selectedApp ? root.selectedApp.appId : "", root.appIndex, root.windowIndex)
+      if (!next) return root.cancel()
+      root.apps = next.apps
+      root.appIndex = next.appIndex
+      root.windowIndex = next.windowIndex
     }
   }
 

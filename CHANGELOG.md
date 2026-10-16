@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.1 — 2026-10-17
+
+- Test suite: `scripts/test.sh` runs static checks (a qmllint gate, JS and Lua
+  syntax, the manifest), Node unit tests, and Lua tests of the Hyprland
+  snippet. `scripts/test.sh e2e` runs a live smoke test in an Omarchy session.
+  GitHub Actions runs the suite on Arch for every push.
+- Ordering, selection, matching and geometry rules moved out of QML into
+  `core/lib/*.mjs`, so they can be unit tested.
+- Fixed Alt+Tab order right after a shell restart: windows focused since
+  startup were pushed behind Hyprland's older focus history.
+
 ## 1.1.0 — 2026-10-16
 
 - Design switch: **Glass** or **Omarchy**. The Omarchy design follows the

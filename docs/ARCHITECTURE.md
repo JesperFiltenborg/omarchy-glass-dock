@@ -6,6 +6,7 @@ everything else.
 
 ```
 GlassDock.qml            entry point: builds the objects below, exposes IPC target "glassdock"
+├── core/lib/*.mjs      pure logic (windows, apps, switcher, settings, geometry), unit tested
 ├── core/Settings.qml    ~/.config/omarchy/glassdock.json ⇄ settings.cfg.*
 ├── core/AppIndex.qml    app id → desktop entry, icon, display name, launch
 ├── core/WindowModel.qml Hyprland windows → per-app groups, MRU order, focus/close actions
@@ -21,6 +22,22 @@ GlassDock.qml            entry point: builds the objects below, exposes IPC targ
 ├── ui/Surface.qml       the pane every surface is drawn on: glass layers, or qs.Ui BorderSurface
 └── hypr/glassdock.lua   Hyprland side: blur, layer rules, Alt+Tab binds
 ```
+
+## Logic and bindings
+
+Decisions live in `core/lib/*.mjs`: plain ES modules with no Quickshell
+types, imported by QML (`import "lib/windows.mjs" as Logic`) and by Node in
+`tests/unit/`. The QML files own live state, timers and dispatches, and call
+into these modules for every ordering, selection or geometry rule. Keep it
+that way: a rule written inline in QML can only be checked by hand.
+
+| Module         | Used by                                 | Covers |
+| -------------- | --------------------------------------- | ------ |
+| `windows.mjs`  | `WindowModel.qml`                       | Groups, MRU (including startup seeding), dock order, switcher order, click and wheel targets |
+| `apps.mjs`     | `AppIndex.qml`                          | Desktop-entry matching (web apps by host), names, icon candidates, launch command |
+| `switcher.mjs` | `Switcher.qml`                          | Opening selection, stepping, re-syncing after windows close, Alt-release timing |
+| `settings.mjs` | `Settings.qml`, `SettingsWindow.qml`, `GlassDock.qml` | Pin, unpin and reorder, monitor selection |
+| `geometry.mjs` | `Dock.qml`                              | Magnification falloff, shelf growth, the show-on-hover zone |
 
 ## Data flow
 

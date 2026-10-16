@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.Commons
+import "../core/lib/settings.mjs" as SettingsLogic
 
 // Glass settings window. Every control writes straight to settings.cfg, which
 // persists to ~/.config/omarchy/glassdock.json and applies live.
@@ -479,16 +480,11 @@ PanelWindow {
 
   // [] means "every monitor". Picking every monitor explicitly collapses back to [].
   function toggleMonitor(name) {
-    const all = Quickshell.screens.map(s => s.name)
-    let list = (cfg.monitors && cfg.monitors.length) ? cfg.monitors.slice() : all.slice()
-    const at = list.indexOf(name)
-    if (at === -1) list.push(name)
-    else if (list.length > 1) list.splice(at, 1)
-    cfg.monitors = list.length === all.length ? [] : list
+    cfg.monitors = SettingsLogic.toggleMonitor(cfg.monitors, Quickshell.screens.map(s => s.name), name)
   }
 
   function monitorShown(name) {
-    return !cfg.monitors || cfg.monitors.length === 0 || cfg.monitors.indexOf(name) !== -1
+    return SettingsLogic.monitorShown(cfg.monitors, name)
   }
 
   // ---- window ---------------------------------------------------------------------

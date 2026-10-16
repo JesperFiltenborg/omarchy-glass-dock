@@ -19,7 +19,7 @@ dest="$HOME/.config/omarchy/plugins/$id"
 sync_once() {
   mkdir -p "$dest"
   rsync -a --delete \
-    --exclude .git --exclude scripts --exclude docs --exclude '*.md' --exclude LICENSE \
+    --exclude .git --exclude .github --exclude scripts --exclude tests --exclude docs --exclude '*.md' --exclude LICENSE \
     "$src/" "$dest/"
   echo "synced → $dest"
 }

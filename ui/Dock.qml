@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import "../core/lib/geometry.mjs" as Geometry
 
 // The dock on one monitor: a glass shelf anchored to the bottom edge, plus the
 // popups that rise out of it (group previews, context menu, tooltip).
@@ -62,19 +63,12 @@ PanelWindow {
 
   // Largest zoom across the icons right now. The shelf grows by this much so
   // magnified icons stay inside its border instead of poking out of the top.
-  readonly property real peakZoom: {
-    const count = dock.windows.pinnedApps.length + dock.windows.runningApps.length
-    let peak = 1
-    for (let i = 0; i < count; i++) peak = Math.max(peak, zoomFor(i))
-    return peak
-  }
+  readonly property real peakZoom: Geometry.peakZoom(
+    dock.windows.pinnedApps.length + dock.windows.runningApps.length,
+    lastHoverPos, magnification, settings.cfg.magnificationRange, zoomAmount)
 
   function zoomFor(slot) {
-    if (magnification <= 1.001 || lastHoverPos < 0 || zoomAmount <= 0) return 1
-    const range = Math.max(1, settings.cfg.magnificationRange)
-    const d = Math.abs(slot + 0.5 - lastHoverPos)
-    if (d >= range) return 1
-    return 1 + (magnification - 1) * zoomAmount * (Math.cos(d / range * Math.PI) + 1) / 2
+    return Geometry.zoomFor(slot, lastHoverPos, magnification, settings.cfg.magnificationRange, zoomAmount)
   }
 
   // ---- popups ------------------------------------------------------------------
@@ -230,18 +224,23 @@ PanelWindow {
 
     Item {
       id: hotZone
-      // Same reach shown or hidden: a smaller keep-zone would hide the dock
-      // straight after a pointer resting in the outer reveal area summoned it.
-      readonly property int reach: win.hoverMode ? win.settings.cfg.revealArea : 0
-      // Sideways the zone reaches six times further: the pointer usually
-      // approaches the bottom edge somewhere off to the dock's side, and the
-      // height above the dock (which overlaps windows in overlay mode) stays small.
-      readonly property int sideReach: reach * 6
-      readonly property real edge: win.revealed ? shelf.y : win.height - win.margin - win.shelfHeight
-      x: Math.max(0, shelf.x - sideReach)
-      width: Math.min(win.width, shelf.x + shelf.width + sideReach) - x
-      y: Math.max(0, edge - reach)
-      height: win.height - y
+      // Geometry rules (reach, 6x sideways, same reach shown or hidden) live
+      // in core/lib/geometry.mjs.
+      readonly property var rect: Geometry.hotZone({
+        hoverMode: win.hoverMode,
+        revealed: win.revealed,
+        revealArea: win.settings.cfg.revealArea,
+        shelfX: shelf.x,
+        shelfY: shelf.y,
+        shelfWidth: shelf.width,
+        restingTop: win.height - win.margin - win.shelfHeight,
+        windowWidth: win.width,
+        windowHeight: win.height
+      })
+      x: rect.x
+      y: rect.y
+      width: rect.width
+      height: rect.height
     }
 
     // ---- shelf -------------------------------------------------------------------

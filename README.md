@@ -189,6 +189,33 @@ symlinks.
 
 Shell logs: `journalctl --user -f | grep -i glassdock`.
 
+### Tests
+
+```bash
+scripts/test.sh            # static checks + unit + Lua tests (what CI runs)
+scripts/test.sh unit       # node --test tests/unit/
+scripts/test.sh lua        # hypr/glassdock.lua against a fake Hyprland
+scripts/test.sh static     # qmllint gate, JS/Lua syntax, manifest, debug leftovers
+scripts/test.sh e2e        # live smoke test in your Omarchy session
+scripts/test.sh e2e --sync # install the working tree first, then smoke test
+```
+
+You need Node 20 or newer, Lua 5.4, `qmllint` (from `qt6-declarative`) and
+`jq`. There are no packages to install.
+
+| Suite      | What it covers |
+| ---------- | -------------- |
+| **unit**   | The dock's logic in `core/lib/*.mjs`: grouping, most-recently-used order, dock order, click and wheel targets, the Alt+Tab selection and timing rules, app matching (web apps too), names, icons, launch commands, pinned apps, monitors, magnification and the reveal area. Also cross-file contracts: every setting has a default, an adapter property, a README row and a settings control; the changelog matches the manifest version; the Hyprland snippet's paths and IPC target exist. |
+| **lua**    | `hypr/glassdock.lua` with a fake `hl`. It checks the blur and layer rules, that Omarchy's Alt+Tab is replaced, what each key sends, the Alt-release arm/disarm cycle, and the opt-out flags. |
+| **static** | `qmllint`, failing only on real problems (syntax errors, broken imports of our own files, duplicates, read-only writes), plus `node --check`, `luac -p`, manifest validation and leftover `console.log`. |
+| **e2e**    | Drives the installed plugin over IPC and checks through Hyprland. It confirms the plugin loaded, the shell logs are clean, there's one dock per monitor, the settings file matches what the dock runs with, hide and show work, the switcher opens, steps and cancels without moving focus, and the settings window opens and closes. It also checks the Alt+Tab binds and that Hyprland has no config errors. |
+
+GitHub Actions (`.github/workflows/test.yml`) runs `scripts/test.sh` on Arch
+for every push and pull request.
+
+To test new logic, put it in a pure function in `core/lib/`, import it from
+QML (`import "lib/x.mjs" as X`), and add a test in `tests/unit/`.
+
 ## Credits
 
 Inspired by [rosakodu/omarchy-dock](https://github.com/rosakodu/omarchy-dock).

@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import "core"
+import "core/lib/settings.mjs" as SettingsLogic
 import "ui"
 
 // Glass Dock — Omarchy shell service entry point.
@@ -43,13 +44,9 @@ Item {
   }
 
   Variants {
-    model: {
-      const wanted = settingsStore.cfg.monitors || []
-      const screens = Quickshell.screens
-      return root.dockVisible && settingsStore.ready
-        ? (wanted.length ? screens.filter(s => wanted.indexOf(s.name) !== -1) : screens)
-        : []
-    }
+    model: root.dockVisible && settingsStore.ready
+      ? SettingsLogic.screensFor(Quickshell.screens, settingsStore.cfg.monitors)
+      : []
     Dock {
       dock: root
     }
