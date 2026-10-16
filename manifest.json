@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "jesperfiltenborg.glassdock",
+  "name": "Glass Dock",
+  "version": "1.0.0",
+  "author": "Jesper Filtenborg",
+  "license": "MIT",
+  "description": "Liquid-glass application dock with per-app window groups, live window previews, and an Alt+Tab switcher.",
+  "kinds": ["service"],
+  "entryPoints": {
+    "service": "GlassDock.qml"
+  }
+}
