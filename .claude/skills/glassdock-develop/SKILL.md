@@ -21,7 +21,14 @@ table apply throughout.
 | Key binds, blur, layer rules | `hypr/glassdock.lua`, and `tests/lua/glassdock_test.lua` |
 | A new setting | Use the `glassdock-add-setting` skill |
 
-## 2. Loop
+## 2. Branch
+
+`main` is protected. When the user asks you to commit, work on a branch named
+`<type>/<topic>` (`feat/`, `fix/`, `hotfix/`, `docs/`, `chore/`), write
+Conventional Commits (`fix(switcher): keep focus on cancel`), and open a pull
+request whose title is one too. Details are in `docs/GIT_WORKFLOW.md`.
+
+## 3. Loop
 
 ```bash
 # edit …
@@ -33,7 +40,7 @@ scripts/dev-tools.sh logs 2             # must print nothing; otherwise fix the 
 If `logs` shows `Type X unavailable` or `Cannot override FINAL property`, the
 plugin didn't load. Nothing else you observe is meaningful until it does.
 
-## 3. Look at it
+## 4. Look at it
 
 - Static UI: `scripts/dev-tools.sh shot dock` (or a layer namespace or monitor
   name), then read the PNG.
@@ -48,7 +55,7 @@ plugin didn't load. Nothing else you observe is meaningful until it does.
   restore it afterwards.
 - State: `dev-tools.sh ipc state | jq` and `dev-tools.sh ipc config | jq`.
 
-## 4. Before reporting done
+## 5. Before reporting done
 
 ```bash
 scripts/lint.sh --fix    # formatters; then fix whatever it still reports

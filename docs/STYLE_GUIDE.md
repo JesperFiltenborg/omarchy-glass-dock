@@ -94,8 +94,9 @@ whitespace rules below plus the conventions in this guide.
 
 ## Commits
 
-- Write subjects in the imperative under about 70 characters
-  (`Fix flicker while hovering icons`), with an optional scope prefix
-  (`ci: …`, `docs: …`). Explain why in the body.
-- One logical change per commit. Releases are commits named
-  `Release Glass Dock x.y.z` with an annotated tag `vx.y.z`.
+- [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
+  `<type>(<scope>): <description>`, at most 72 characters, imperative and
+  lower case (`fix(dock): stop flicker while hovering icons`). Explain why in
+  the body.
+- One logical change per commit. Branch names, types, scopes and the release
+  flow are in [GIT_WORKFLOW.md](GIT_WORKFLOW.md).

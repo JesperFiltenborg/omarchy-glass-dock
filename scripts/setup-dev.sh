@@ -6,7 +6,7 @@ set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
 git config core.hooksPath .githooks
-echo "git hooks enabled (.githooks/pre-commit runs lint + unit tests)"
+echo "git hooks enabled: pre-commit (lint + unit tests), commit-msg (Conventional Commits)"
 
 missing=()
 for tool in node lua luac jq rsync inotifywait shellcheck shfmt stylua luacheck biome; do

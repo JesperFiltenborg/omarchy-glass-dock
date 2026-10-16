@@ -124,10 +124,16 @@ The e2e tests and `dev-tools.sh` act on the **user's real session**:
 
 ## Commits and releases
 
-- Commit or push only when the user asks. `main` is published on GitHub, and
-  CI (`.github/workflows/test.yml`) runs `scripts/test.sh` on Arch for every
-  push.
-- A release is a semver bump in `manifest.json` plus a dated `CHANGELOG.md`
-  entry, a commit named `Release Glass Dock x.y.z`, and an annotated tag
-  `vx.y.z`. See the `glassdock-release` skill.
+- Commit or push only when the user asks. Follow
+  [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md): work on a `<type>/<topic>`
+  branch (`feat/`, `fix/`, `hotfix/`, `release/`, `docs/`, `chore/`), write
+  [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+  (`feat(dock): add a show delay`), and open a pull request whose title is
+  one too. The `commit-msg` hook and the `conventions` CI job check both.
+- `main` is protected: no direct pushes, even for admins. Changes merge
+  through pull requests once `test` and `conventions` pass, squash-merged
+  under the PR title.
+- A release is a `release/x.y.z` pull request titled `chore(release): x.y.z`
+  (manifest version plus a dated `CHANGELOG.md` entry), then an annotated tag
+  `vx.y.z` on the merge commit. See the `glassdock-release` skill.
 - Never move or delete a pushed tag without the user's explicit OK.

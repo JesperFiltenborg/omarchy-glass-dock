@@ -1,6 +1,6 @@
 ---
 name: glassdock-release
-description: Use when the user asks to commit, tag, release, version-bump or publish Glass Dock (e.g. "commit version 1.3.0", "push it to GitHub"). Covers semver choice, changelog and manifest, pre-release checks, the commit and tag format, pushing, and confirming CI on GitHub.
+description: Use when the user asks to commit, tag, release, version-bump or publish Glass Dock (e.g. "commit version 1.3.0", "push it to GitHub"). Covers semver choice, changelog and manifest, pre-release checks, the release branch and pull request (main is protected), the Conventional Commit format, tagging after merge, and confirming CI on GitHub.
 ---
 
 # Releasing Glass Dock
@@ -37,33 +37,44 @@ git status --short              # everything intended is there; nothing stray
 grep -rn -I -E '/home/[a-z]|password|secret' --exclude-dir=.git .   # nothing personal goes public
 ```
 
-## 4. Commit, tag, push
+## 4. Branch, commit, pull request
+
+`main` is protected, so a release goes through a pull request like any other
+change (see `docs/GIT_WORKFLOW.md`). Do the version bump on a release branch:
 
 ```bash
+git switch main && git pull
+git switch -c release/x.y.z          # before step 2, or carry the edits over
 git add -A
-git commit -F - <<'EOF'
-Release Glass Dock x.y.z
-
-<one-line summary>
+git commit -F - <<'MSG'
+chore(release): x.y.z
 
 - <main changes, as in the changelog>
 
 <attribution lines required by the session, if any>
-EOF
-git tag -a vx.y.z -m "Glass Dock x.y.z"
-git push origin main --follow-tags
+MSG
+git push -u origin release/x.y.z
+gh pr create --title "chore(release): x.y.z" --body "<changelog entry>"
 ```
 
-## 5. Confirm CI
+Feature work that isn't merged yet belongs on its own `feat/` or `fix/`
+branches and pull requests first. The release PR should contain only the
+version bump and changelog.
+
+## 5. Wait for checks, merge, tag
 
 ```bash
-gh run list --limit 3
-gh run watch <id> --exit-status     # or poll gh run list until completed
-gh run view <id> --log-failed       # if it failed
+gh pr checks --watch                 # `test` and `conventions` must pass
+gh pr merge --squash --delete-branch
+git switch main && git pull
+git tag -a vx.y.z -m "Glass Dock x.y.z"   # on the squash commit now at main's tip
+git push origin vx.y.z
+gh run list --limit 3                # the tag's run must pass too
 ```
 
-A failure only on GitHub is usually a missing tool in the Arch container.
-Fix it in `.github/workflows/test.yml` with a follow-up commit. Don't move
-the pushed tag unless the user agrees.
+If a check fails, fix it with another commit on the release branch. A failure
+only on GitHub is usually a missing tool in the Arch container
+(`.github/workflows/test.yml`). Never move or delete a pushed tag unless the
+user agrees.
 
-Report the commit hash, the tag, the CI result, and the repo URL.
+Report the PR, the merge commit, the tag, the CI result and the repo URL.
