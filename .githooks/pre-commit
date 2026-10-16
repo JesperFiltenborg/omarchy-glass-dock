@@ -1,0 +1,17 @@
+#!/bin/bash
+# Pre-commit: lint and fast tests. Enable with scripts/setup-dev.sh.
+# Bypass once with `git commit --no-verify`.
+
+set -uo pipefail
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+if ! scripts/lint.sh; then
+  echo
+  echo "pre-commit: lint failed. Fix it (scripts/lint.sh --fix), git add, and commit again."
+  exit 1
+fi
+
+if ! node --test tests/unit/ >/dev/null 2>&1; then
+  echo "pre-commit: unit tests failed (node --test tests/unit/)."
+  exit 1
+fi

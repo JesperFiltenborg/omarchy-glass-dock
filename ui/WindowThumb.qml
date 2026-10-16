@@ -29,7 +29,7 @@ Item {
     color: root.selected ? root.theme.selectedFill : (root.hovered ? root.theme.hoverFill : "transparent")
     border.width: root.selected ? 2 : 0
     border.color: root.theme.selectedRim
-    Behavior on color { ColorAnimation { duration: 120 } }
+    Behavior on color { enabled: root.theme.animate; ColorAnimation { duration: 120 } }
   }
 
   Item {
@@ -49,7 +49,7 @@ Item {
       width: hasContent ? implicitWidth : frame.width
       height: hasContent ? implicitHeight : frame.height
       opacity: hasContent ? 1 : 0
-      Behavior on opacity { NumberAnimation { duration: 140 } }
+      Behavior on opacity { enabled: root.theme.animate; NumberAnimation { duration: 140 } }
     }
 
     // Placeholder until the first frame arrives (or for apps that refuse capture).

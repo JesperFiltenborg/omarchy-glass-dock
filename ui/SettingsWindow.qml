@@ -4,6 +4,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.Commons
 import "../core/lib/settings.mjs" as SettingsLogic
+import "../core/lib/keys.mjs" as KeyLogic
 
 // Glass settings window. Every control writes straight to settings.cfg, which
 // persists to ~/.config/omarchy/glassdock.json and applies live.
@@ -20,9 +21,15 @@ PanelWindow {
   readonly property var theme: dock.theme
 
   property bool opened: false
+  // True while the show/hide key recorder listens; GlassDock suspends the
+  // bind meanwhile so the current combo reaches this window.
+  property bool recordingKey: false
 
   function open() { opened = true }
-  function close() { opened = false }
+  function close() {
+    opened = false
+    recordingKey = false
+  }
   function toggle() { opened = !opened }
 
   visible: opened
@@ -75,7 +82,7 @@ PanelWindow {
         color: root.theme.alpha(root.theme.text, 0.6)
         font.family: root.theme.fontFamily
         font.pixelSize: 16
-        Behavior on rotation { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+        Behavior on rotation { enabled: root.theme.animate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
       }
       Text {
         anchors.left: chevron.right
@@ -101,7 +108,7 @@ PanelWindow {
       width: parent.width
       height: section.expanded ? inner.implicitHeight : 0
       clip: true
-      Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+      Behavior on height { enabled: root.theme.animate; NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
       Column {
         id: inner
@@ -110,7 +117,7 @@ PanelWindow {
         topPadding: 2
         bottomPadding: 4
         opacity: section.expanded ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: 160 } }
+        Behavior on opacity { enabled: root.theme.animate; NumberAnimation { duration: 160 } }
       }
     }
   }
@@ -174,7 +181,7 @@ PanelWindow {
       color: root.theme.switchTrack(sw.checked)
       border.width: 1
       border.color: root.theme.rim
-      Behavior on color { ColorAnimation { duration: 140 } }
+      Behavior on color { enabled: root.theme.animate; ColorAnimation { duration: 140 } }
     }
     Rectangle {
       width: 20
@@ -183,7 +190,7 @@ PanelWindow {
       y: 3
       x: sw.checked ? sw.width - width - 3 : 3
       color: root.theme.switchKnob(sw.checked)
-      Behavior on x { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+      Behavior on x { enabled: root.theme.animate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
     }
     MouseArea {
       anchors.fill: parent
@@ -246,7 +253,7 @@ PanelWindow {
         border.width: 1
         border.color: root.theme.rim
         scale: drag.pressed ? 1.15 : 1
-        Behavior on scale { NumberAnimation { duration: 100 } }
+        Behavior on scale { enabled: root.theme.animate; NumberAnimation { duration: 100 } }
       }
       MouseArea {
         id: drag
@@ -355,6 +362,64 @@ PanelWindow {
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
       onClicked: chip.clicked()
+    }
+  }
+
+  // Key combination field: click it, then press the keys. Esc cancels. While
+  // it listens it holds keyboard focus and sets root.recordingKey.
+  component KeyRecorder: Rectangle {
+    id: recorder
+    property string combo
+    property string problem: ""
+    readonly property bool recording: root.recordingKey
+    signal recorded(string combo)
+
+    function start() {
+      problem = ""
+      root.recordingKey = true
+      forceActiveFocus()
+    }
+
+    function stop() {
+      root.recordingKey = false
+      keyRoot.forceActiveFocus()
+    }
+
+    width: Math.max(140, recorderLabel.implicitWidth + 24)
+    height: 28
+    radius: root.theme.r(14)
+    color: recording ? root.theme.selectedFill : (recorderMouse.containsMouse ? root.theme.hoverFill : "transparent")
+    border.width: 1
+    border.color: recording ? root.theme.selectedRim : root.theme.rimSoft
+
+    Keys.onPressed: event => {
+      event.accepted = true
+      if (event.key === Qt.Key_Escape) {
+        recorder.stop()
+        return
+      }
+      const result = KeyLogic.comboFromKey(event.key, event.modifiers)
+      if (result.pending) return
+      if (result.error) {
+        recorder.problem = result.error
+        return
+      }
+      recorder.stop()
+      recorder.recorded(result.combo)
+    }
+
+    Label {
+      id: recorderLabel
+      anchors.centerIn: parent
+      text: recorder.recording ? (recorder.problem || "Press keys… (Esc cancels)") : KeyLogic.formatCombo(recorder.combo)
+      font.pixelSize: 12
+    }
+    MouseArea {
+      id: recorderMouse
+      anchors.fill: parent
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
+      onClicked: recorder.recording ? recorder.stop() : recorder.start()
     }
   }
 
@@ -490,6 +555,7 @@ PanelWindow {
   // ---- window ---------------------------------------------------------------------
 
   Item {
+    id: keyRoot
     anchors.fill: parent
     focus: true
     Keys.onEscapePressed: root.close()
@@ -607,13 +673,42 @@ PanelWindow {
         title: "Dock"
 
         Setting {
+          label: "Show the dock"
+          hint: "Remembered after restarts. The key below flips it too"
+          Switch { checked: root.cfg.showDock; onToggled: v => root.cfg.showDock = v }
+        }
+        Setting {
+          label: "Show/hide key"
+          hint: root.dock.toggleKey.error
+            ? "Hyprland refused it: " + root.dock.toggleKey.error
+            : "Click, then press the combination. ✕ removes the bind"
+          Row {
+            spacing: 6
+            KeyRecorder { combo: root.cfg.toggleKey; onRecorded: c => root.cfg.toggleKey = c }
+            IconButton {
+              anchors.verticalCenter: parent.verticalCenter
+              glyph: "✕"
+              enabledState: root.cfg.toggleKey !== ""
+              onClicked: root.cfg.toggleKey = ""
+            }
+          }
+        }
+        Setting {
           label: "Icon size"
           Slider { from: 32; to: 96; stepSize: 2; value: root.cfg.iconSize; suffix: " px"; onMoved: v => root.cfg.iconSize = v }
         }
         Setting {
           label: "Magnification"
           hint: "1.00 turns hover zoom off"
-          Slider { from: 1; to: 2.2; stepSize: 0.05; decimals: 2; value: root.cfg.magnification; suffix: "×"; onMoved: v => root.cfg.magnification = v }
+          Slider {
+            from: 1
+            to: 2.2
+            stepSize: 0.05
+            decimals: 2
+            value: root.cfg.magnification
+            suffix: "×"
+            onMoved: v => root.cfg.magnification = v
+          }
         }
         Setting {
           label: "Magnification reach"
@@ -666,9 +761,20 @@ PanelWindow {
           Slider { from: 0; to: 120; stepSize: 4; value: root.cfg.revealArea; suffix: " px"; onMoved: v => root.cfg.revealArea = v }
         }
         Setting {
+          label: "Show delay"
+          hint: "How long the pointer must stay near the dock first"
+          opacity: root.cfg.showOnHover ? 1 : 0.4
+          Slider { from: 0; to: 1000; stepSize: 10; value: root.cfg.showDelay; suffix: " ms"; onMoved: v => root.cfg.showDelay = v }
+        }
+        Setting {
           label: "Hide delay"
           opacity: root.cfg.showOnHover ? 1 : 0.4
           Slider { from: 100; to: 3000; stepSize: 50; value: root.cfg.hideDelay; suffix: " ms"; onMoved: v => root.cfg.hideDelay = v }
+        }
+        Setting {
+          label: "Animations"
+          hint: "Off makes everything instant and is the lightest on the GPU"
+          Switch { checked: root.cfg.animations; onToggled: v => root.cfg.animations = v }
         }
         Setting {
           label: "Act as overlay"
@@ -690,7 +796,14 @@ PanelWindow {
         }
         Setting {
           label: "Shine"
-          Slider { from: 0; to: 0.4; stepSize: 0.01; decimals: 2; value: root.cfg.glassHighlight; onMoved: v => root.cfg.glassHighlight = v }
+          Slider {
+            from: 0
+            to: 0.4
+            stepSize: 0.01
+            decimals: 2
+            value: root.cfg.glassHighlight
+            onMoved: v => root.cfg.glassHighlight = v
+          }
         }
         Setting {
           label: "Corner radius"
@@ -728,17 +841,70 @@ PanelWindow {
           Switch { checked: root.cfg.switcher; onToggled: v => root.cfg.switcher = v }
         }
         Setting {
+          label: "Show on"
+          hint: "Which display the switcher appears on"
+          Row {
+            spacing: 6
+            Repeater {
+              model: [
+                { key: "focused", label: "Current display" },
+                { key: "primary", label: "Main display" },
+                { key: "all", label: "All displays" }
+              ]
+              Chip {
+                required property var modelData
+                text: modelData.label
+                selected: (root.cfg.switcherDisplay || "focused") === modelData.key
+                onClicked: root.cfg.switcherDisplay = modelData.key
+              }
+            }
+          }
+        }
+        Setting {
+          label: "Main display"
+          hint: root.cfg.switcherMainDisplay ? "Used by \"Main display\"" : "Not set: the first display is used"
+          opacity: root.cfg.switcherDisplay === "primary" ? 1 : 0.4
+          Row {
+            spacing: 6
+            Repeater {
+              model: Quickshell.screens
+              Chip {
+                required property var modelData
+                text: modelData.name
+                selected: root.cfg.switcherMainDisplay === modelData.name
+                  || (!root.cfg.switcherMainDisplay && index === 0)
+                required property int index
+                onClicked: root.cfg.switcherMainDisplay = modelData.name
+              }
+            }
+          }
+        }
+        Setting {
           label: "Current workspace only"
           Switch { checked: root.cfg.switcherCurrentWorkspaceOnly; onToggled: v => root.cfg.switcherCurrentWorkspaceOnly = v }
         }
         Setting {
           label: "Card size"
-          Slider { from: 200; to: 420; stepSize: 10; value: root.cfg.switcherCardWidth; suffix: " px"; onMoved: v => root.cfg.switcherCardWidth = v }
+          Slider {
+            from: 200
+            to: 420
+            stepSize: 10
+            value: root.cfg.switcherCardWidth
+            suffix: " px"
+            onMoved: v => root.cfg.switcherCardWidth = v
+          }
         }
         Setting {
           label: "Overlay delay"
           hint: "Quicker taps switch without showing the overlay"
-          Slider { from: 0; to: 400; stepSize: 10; value: root.cfg.switcherRevealDelay; suffix: " ms"; onMoved: v => root.cfg.switcherRevealDelay = v }
+          Slider {
+            from: 0
+            to: 400
+            stepSize: 10
+            value: root.cfg.switcherRevealDelay
+            suffix: " ms"
+            onMoved: v => root.cfg.switcherRevealDelay = v
+          }
         }
       }
 

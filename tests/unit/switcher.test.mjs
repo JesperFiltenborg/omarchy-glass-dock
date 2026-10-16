@@ -46,11 +46,16 @@ describe("stepApp / stepWindow", () => {
 })
 
 describe("reconcile", () => {
-  const a = app("a", 2), b = app("b", 1), c = app("c", 1)
+  const a = app("a", 2),
+    b = app("b", 1),
+    c = app("c", 1)
 
   it("keeps snapshot order and the selected app when it survives", () => {
     const next = S.reconcile([a, b, c], [c, b], "b", 1, 0)
-    assert.deepEqual(next.apps.map(x => x.appId), ["b", "c"])
+    assert.deepEqual(
+      next.apps.map(x => x.appId),
+      ["b", "c"],
+    )
     assert.equal(next.appIndex, 0)
   })
 
@@ -82,5 +87,42 @@ describe("Alt release timing", () => {
     assert.equal(S.isQuickTap(1_000, 1_000 - 100), true)
     assert.equal(S.isQuickTap(1_000, 1_000 - S.EARLY_RELEASE_MS - 1), false)
     assert.equal(S.isQuickTap(1_000, 0), false)
+  })
+})
+
+describe("switcherScreens", () => {
+  const all = ["HDMI-A-1", "DP-3"]
+
+  it("shows on the focused monitor by default", () => {
+    assert.deepEqual(S.switcherScreens("focused", all, "DP-3", ""), ["DP-3"])
+  })
+
+  it("shows on the main monitor in primary mode, wherever focus is", () => {
+    assert.deepEqual(S.switcherScreens("primary", all, "HDMI-A-1", "DP-3"), ["DP-3"])
+  })
+
+  it("falls back to the first monitor when the main one is unset or unplugged", () => {
+    assert.deepEqual(S.switcherScreens("primary", all, "DP-3", ""), ["HDMI-A-1"])
+    assert.deepEqual(S.switcherScreens("primary", all, "DP-3", "eDP-1"), ["HDMI-A-1"])
+  })
+
+  it("mirrors on every monitor in all mode", () => {
+    assert.deepEqual(S.switcherScreens("all", all, "DP-3", ""), all)
+  })
+
+  it("treats an unknown mode as focused, and handles no monitors", () => {
+    assert.deepEqual(S.switcherScreens("bogus", all, "DP-3", ""), ["DP-3"])
+    assert.deepEqual(S.switcherScreens("all", [], "DP-3", ""), [])
+  })
+})
+
+describe("keyboardScreen", () => {
+  it("is the focused monitor when the switcher shows there", () => {
+    assert.equal(S.keyboardScreen(["HDMI-A-1", "DP-3"], "DP-3"), "DP-3")
+  })
+
+  it("is the only shown monitor otherwise", () => {
+    assert.equal(S.keyboardScreen(["DP-3"], "HDMI-A-1"), "DP-3")
+    assert.equal(S.keyboardScreen([], "DP-3"), "")
   })
 })

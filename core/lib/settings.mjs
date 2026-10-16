@@ -26,7 +26,7 @@ export function monitorShown(selected, name) {
  * show the dock too.
  */
 export function toggleMonitor(selected, all, name) {
-  const list = (selected && selected.length) ? selected.slice() : all.slice()
+  const list = selected?.length ? selected.slice() : all.slice()
   const at = list.indexOf(name)
   if (at === -1) list.push(name)
   else if (list.length > 1) list.splice(at, 1)
@@ -35,5 +35,5 @@ export function toggleMonitor(selected, all, name) {
 
 /** Screens the dock should appear on. */
 export function screensFor(screens, selected) {
-  return selected && selected.length ? screens.filter(s => selected.indexOf(s.name) !== -1) : screens
+  return selected?.length ? screens.filter(s => selected.indexOf(s.name) !== -1) : screens
 }

@@ -11,8 +11,11 @@ import { join, relative } from "node:path"
 import { tmpdir } from "node:os"
 
 const root = new URL("../../", import.meta.url).pathname
-const qmllint = process.argv[2]
-  || ["/usr/lib/qt6/bin/qmllint", "/usr/lib/qt/bin/qmllint", "/usr/bin/qmllint6", "/usr/bin/qmllint"].find(existsSync)
+const qmllint =
+  process.argv[2] ||
+  ["/usr/lib/qt6/bin/qmllint", "/usr/lib/qt/bin/qmllint", "/usr/bin/qmllint6", "/usr/bin/qmllint"].find(
+    existsSync,
+  )
 
 if (!qmllint) {
   console.error("qmllint not found (install qt6-declarative)")
@@ -21,8 +24,13 @@ if (!qmllint) {
 
 // Always failures.
 const FAIL_IDS = new Set([
-  "syntax", "duplicated-name", "duplicate-property-binding", "read-only-property",
-  "alias-cycle", "multiline-strings", "deprecated",
+  "syntax",
+  "duplicated-name",
+  "duplicate-property-binding",
+  "read-only-property",
+  "alias-cycle",
+  "multiline-strings",
+  "deprecated",
 ])
 // Imports qmllint can't resolve outside the shell; any other import failure
 // (e.g. a mistyped "../core/lib/x.mjs") is a real error.
@@ -52,12 +60,17 @@ const ignored = {}
 for (const file of results.files) {
   for (const w of file.warnings) {
     const isFailure = FAIL_IDS.has(w.id) || (w.id === "import" && !EXTERNAL_IMPORT.test(w.message))
-    if (isFailure) failures.push(`${relative(root, file.filename)}:${w.line}:${w.column} [${w.id}] ${w.message}`)
+    if (isFailure)
+      failures.push(`${relative(root, file.filename)}:${w.line}:${w.column} [${w.id}] ${w.message}`)
     else ignored[w.id] = (ignored[w.id] || 0) + 1
   }
 }
 
-const summary = Object.entries(ignored).map(([id, n]) => `${id} ×${n}`).join(", ")
-console.log(`qmllint: ${files.length} files, ${failures.length} failure(s)` + (summary ? `; ignored: ${summary}` : ""))
-for (const f of failures) console.log("  " + f)
+const summary = Object.entries(ignored)
+  .map(([id, n]) => `${id} ×${n}`)
+  .join(", ")
+console.log(
+  `qmllint: ${files.length} files, ${failures.length} failure(s)${summary ? `; ignored: ${summary}` : ""}`,
+)
+for (const f of failures) console.log(`  ${f}`)
 process.exit(failures.length ? 1 : 0)

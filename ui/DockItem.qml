@@ -53,7 +53,7 @@ Item {
       mipmap: true
       asynchronous: true
       scale: mouse.pressed ? 0.9 : 1
-      Behavior on scale { NumberAnimation { duration: 90 } }
+      Behavior on scale { enabled: root.theme.animate; NumberAnimation { duration: 90 } }
     }
 
     SequentialAnimation {
@@ -79,7 +79,7 @@ Item {
         height: 5
         radius: root.theme.r(2.5)
         color: root.focused ? root.theme.accent : root.theme.alpha(root.theme.text, 0.75)
-        Behavior on width { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+        Behavior on width { enabled: root.theme.animate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
       }
     }
   }
@@ -88,7 +88,7 @@ Item {
 
   function startLaunching() {
     launching = true
-    bounce.restart()
+    if (theme.animate) bounce.restart()
     launchTimeout.restart()
   }
 

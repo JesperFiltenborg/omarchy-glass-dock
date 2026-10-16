@@ -6,17 +6,19 @@ everything else.
 
 ```
 GlassDock.qml            entry point: builds the objects below, exposes IPC target "glassdock"
-├── core/lib/*.mjs      pure logic (windows, apps, switcher, settings, geometry), unit tested
+├── core/lib/*.mjs      pure logic (windows, apps, switcher, settings, geometry, keys), unit tested
 ├── core/Settings.qml    ~/.config/omarchy/glassdock.json ⇄ settings.cfg.*
 ├── core/AppIndex.qml    app id → desktop entry, icon, display name, launch
 ├── core/WindowModel.qml Hyprland windows → per-app groups, MRU order, focus/close actions
+├── core/ToggleKey.qml   the show/hide key bind, owned through `hyprctl eval` while the shell runs
 ├── ui/Theme.qml         design tokens for the chosen style (glass | omarchy), from the Omarchy theme
 ├── ui/Dock.qml          ×N, one layer surface per monitor (Variants over screens)
 │   ├── DockItem.qml       icon, magnification, dots, launch bounce, mouse actions
 │   ├── PreviewPopup.qml   hover: the app's window group as live thumbnails
 │   └── ContextMenu.qml    right click
-├── ui/Switcher.qml      Alt+Tab overlay and its state machine
-│   └── SwitcherCard.qml   one app: live preview, icon, title, window-count badge
+├── ui/Switcher.qml      Alt+Tab controller: the state machine, and which monitors show it
+│   └── SwitcherPanel.qml  ×N, one per monitor: the overlay UI (pure view of the controller)
+│       └── SwitcherCard.qml one app: live preview, icon, title, window-count badge
 ├── ui/SettingsWindow.qml glass settings panel; controls write straight to settings.cfg
 ├── ui/WindowThumb.qml   live window thumbnail (ScreencopyView), shared by both
 ├── ui/Surface.qml       the pane every surface is drawn on: glass layers, or qs.Ui BorderSurface
@@ -35,9 +37,10 @@ that way: a rule written inline in QML can only be checked by hand.
 | -------------- | --------------------------------------- | ------ |
 | `windows.mjs`  | `WindowModel.qml`                       | Groups, MRU (including startup seeding), dock order, switcher order, click and wheel targets |
 | `apps.mjs`     | `AppIndex.qml`                          | Desktop-entry matching (web apps by host), names, icon candidates, launch command |
-| `switcher.mjs` | `Switcher.qml`                          | Opening selection, stepping, re-syncing after windows close, Alt-release timing |
+| `switcher.mjs` | `Switcher.qml`                          | Opening selection, stepping, re-syncing after windows close, Alt-release timing, which monitors show it |
 | `settings.mjs` | `Settings.qml`, `SettingsWindow.qml`, `GlassDock.qml` | Pin, unpin and reorder, monitor selection |
 | `geometry.mjs` | `Dock.qml`                              | Magnification falloff, shelf growth, the show-on-hover zone |
+| `keys.mjs`     | `ToggleKey.qml`, `SettingsWindow.qml`   | Recording a key press as a Hyprland combo, display names, the bind/unbind Lua |
 
 ## Data flow
 
@@ -139,8 +142,19 @@ border gradients and per-side widths work automatically.
 
 ## The switcher
 
-`Switcher` is an unanchored overlay layer named `glassdock-switcher`, sized
-to its panel and centred by the compositor. Its state machine:
+`Switcher` is a non-visual controller. Each monitor gets a `SwitcherPanel`:
+an unanchored overlay layer named `glassdock-switcher`, sized to its panel and
+centred by the compositor. Panels hold no state, so mirrored panels always
+show the same selection.
+
+When it opens, the controller fixes which monitors show it, following
+`switcherDisplay` (`focused`, `primary` or `all`) and `switcherMainDisplay`.
+It also fixes the one panel that takes keyboard focus: the focused monitor's
+panel if it's shown, otherwise the first one shown. Moving focus while Alt is
+held doesn't move the switcher. The rules are in `switcherScreens` and
+`keyboardScreen` in `core/lib/switcher.mjs`.
+
+Its state machine:
 
 | Method            | Effect                                                                        |
 | ----------------- | ----------------------------------------------------------------------------- |

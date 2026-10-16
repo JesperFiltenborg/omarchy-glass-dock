@@ -9,17 +9,32 @@
 # and closes everything it opens. Needs a Hyprland session with omarchy-shell.
 
 set -uo pipefail
-cd "$(dirname "${BASH_SOURCE[0]}")/../.."
+cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
 
 id=$(jq -r .id manifest.json)
 started=$(date "+%Y-%m-%d %H:%M:%S")
 passed=0 failed=0
 
-ok() { passed=$((passed + 1)); echo "  ok   $1"; }
-fail() { failed=$((failed + 1)); echo "  FAIL $1${2:+ — $2}"; }
-check() { local name=$1; shift; if "$@" >/dev/null 2>&1; then ok "$name"; else fail "$name"; fi; }
+ok() {
+  passed=$((passed + 1))
+  echo "  ok   $1"
+}
+fail() {
+  failed=$((failed + 1))
+  echo "  FAIL $1${2:+ — $2}"
+}
+check() {
+  local name=$1
+  shift
+  if "$@" >/dev/null 2>&1; then ok "$name"; else fail "$name"; fi
+}
 pause() { perl -e "select(undef, undef, undef, $1)"; }
 ipc() { omarchy-shell glassdock "$@"; }
+
+# Whether monitor $1 has a mapped layer in namespace $2.
+on_monitor() {
+  hyprctl layers -j | jq -e --arg m "$1" --arg ns "$2" '.[$m].levels[] | any(.[]; .namespace == $ns)'
+}
 
 # Count layers in a namespace, waiting up to ~2s for it to reach $2.
 layers() { hyprctl layers -j | jq "[.[] | .levels[] | .[] | select(.namespace == \"$1\")] | length"; }
@@ -35,30 +50,52 @@ wait_layers() {
 }
 
 for tool in hyprctl omarchy-shell jq journalctl; do
-  command -v "$tool" >/dev/null || { echo "smoke: needs $tool (run inside an Omarchy session)"; exit 2; }
+  command -v "$tool" >/dev/null || {
+    echo "smoke: needs $tool (run inside an Omarchy session)"
+    exit 2
+  }
 done
-[[ -d ~/.config/omarchy/plugins/$id || ${1:-} == --sync ]] \
-  || { echo "smoke: $id is not installed (use --sync)"; exit 2; }
+[[ -d ~/.config/omarchy/plugins/$id || ${1:-} == --sync ]] ||
+  {
+    echo "smoke: $id is not installed (use --sync)"
+    exit 2
+  }
 
 echo "e2e smoke ($id)"
 
 if [[ ${1:-} == --sync ]]; then
-  scripts/dev-sync.sh >/dev/null && ok "installed working tree and restarted shell" || fail "dev-sync"
+  if scripts/dev-sync.sh >/dev/null; then
+    ok "installed working tree and restarted shell"
+  else
+    fail "dev-sync"
+  fi
 fi
 
 # ---- loaded ------------------------------------------------------------------------
 
 alive=0
 for _ in $(seq 50); do
-  [[ $(ipc ping 2>/dev/null) == ok ]] && { alive=1; break; }
+  [[ $(ipc ping 2>/dev/null) == ok ]] && {
+    alive=1
+    break
+  }
   pause 0.2
 done
-((alive)) && ok "plugin answers IPC" || { fail "plugin answers IPC" "is it enabled? omarchy plugin enable $id"; exit 1; }
+if ((alive)); then
+  ok "plugin answers IPC"
+else
+  fail "plugin answers IPC" "is it enabled? omarchy plugin enable $id"
+  exit 1
+fi
 
 pause 1
-warnings=$(journalctl --user --since "$started" --no-pager 2>/dev/null \
-  | grep -i "$id" | grep -v -E "IpcHandler|reloading" || true)
-[[ -z $warnings ]] && ok "no shell warnings from the plugin" || fail "no shell warnings from the plugin" "$(echo "$warnings" | head -3)"
+warnings=$(journalctl --user --since "$started" --no-pager 2>/dev/null |
+  grep -i "$id" | grep -v -E "IpcHandler|reloading" || true)
+if [[ -z $warnings ]]; then
+  ok "no shell warnings from the plugin"
+else
+  fail "no shell warnings from the plugin" "$(echo "$warnings" | head -3)"
+fi
 
 state=$(ipc state)
 check "state is valid JSON" jq -e . <<<"$state"
@@ -66,6 +103,7 @@ config=$(ipc config)
 check "config is valid JSON" jq -e . <<<"$config"
 # Every key in the file is what the dock runs with (keys missing from an older
 # file fall back to defaults, so only the file's keys are compared).
+# shellcheck disable=SC2016 # $running is a jq variable
 check "config matches the settings file" \
   jq -e --argjson running "$config" 'to_entries | all(.value == $running[.key])' ~/.config/omarchy/glassdock.json
 
@@ -92,15 +130,23 @@ fi
 
 if [[ $(jq '.switcher | length' <<<"$state") -gt 0 && $(jq .switcher <<<"$config") == true ]]; then
   focus_before=$(hyprctl activewindow -j | jq -r .address)
+  mode=$(jq -r '.switcherDisplay // "focused"' <<<"$config")
+  panels=1
+  [[ $mode == all ]] && panels=$monitors
   ipc next
-  check "Alt+Tab (next) opens the switcher" wait_layers glassdock-switcher 1
+  check "Alt+Tab (next) opens the switcher ($mode: $panels panel(s))" wait_layers glassdock-switcher "$panels"
+  if [[ $mode == primary ]]; then
+    main=$(jq -r '.switcherMainDisplay // ""' <<<"$config")
+    [[ -n $main ]] || main=$(hyprctl monitors -j | jq -r '.[0].name')
+    check "it shows on the main display ($main)" on_monitor "$main" glassdock-switcher
+  fi
   ipc nextWindow
   ipc prev
-  check "stepping keeps it open" wait_layers glassdock-switcher 1
+  check "stepping keeps it open" wait_layers glassdock-switcher "$panels"
   ipc cancel
   check "cancel closes it" wait_layers glassdock-switcher 0
   focus_after=$(hyprctl activewindow -j | jq -r .address)
-  [[ $focus_before == "$focus_after" ]] && ok "cancel leaves focus unchanged" || fail "cancel leaves focus unchanged"
+  check "cancel leaves focus unchanged" test "$focus_before" = "$focus_after"
 else
   ok "switcher: no windows open or switcher disabled, skipped"
 fi
@@ -119,6 +165,13 @@ check "Alt+Tab is bound to Glass Dock" \
   jq -e 'any(.[]; .description == "Glass Dock: next app")' <<<"$binds"
 check "Omarchy's Alt+Tab cycle_next is gone" \
   bash -c "jq -e 'all(.[]; .description != \"Focus on next window\")' <<<'$binds'"
+if [[ $(jq -r '.toggleKey' <<<"$config") != "" ]]; then
+  check "the show/hide key is bound" \
+    jq -e 'any(.[]; .description == "Glass Dock: show or hide the dock")' <<<"$binds"
+else
+  ok "toggleKey is empty: show/hide bind not checked"
+fi
+# shellcheck disable=SC2016 # expanded by the inner bash
 check "Hyprland config has no errors" bash -c '[[ -z $(hyprctl configerrors | tr -d "[:space:]") ]]'
 
 echo

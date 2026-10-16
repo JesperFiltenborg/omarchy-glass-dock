@@ -28,8 +28,11 @@ Quickshell), with per-app **window groups**, **live window previews**, and an
   right of it. Chromium web apps resolve to their own desktop entries and icons.
 - **Multi-monitor.** One dock per monitor, or only the monitors you list.
 - **Show on hover.** Optional. The dock stays hidden until the pointer comes
-  near it (a configurable area around the dock, not just the dock itself),
-  then slides and fades in.
+  near it (a configurable area around the dock, not just the dock itself)
+  for the show delay, then slides and fades in.
+- **Show/hide key.** Super+Alt+D hides or shows the dock, and it stays that
+  way after a restart. Pick another key in Dock Settings.
+- **Animations toggle.** Turn every animation off for an instant, minimal dock.
 - **Overlay mode.** Optional. The dock floats over your windows instead of
   reserving space at the bottom of the screen.
 - **Settings window.** A panel with collapsible sections, live controls for
@@ -78,8 +81,29 @@ It appears under **System**, and the menu reloads on save:
 "system.dock-settings": {"icon":"󱂩","label":"Dock Settings","description":"Glass Dock: size, glass, previews, Alt+Tab, pinned apps","aliases":["glassdock","dock"],"action":"omarchy-shell glassdock openSettings"},
 ```
 
-Uninstall with `omarchy plugin remove jesperfiltenborg.glassdock` and delete
-the two lines from `hyprland.lua`.
+### Disable or uninstall
+
+| You want | Do this |
+| --- | --- |
+| Hide the dock for a while | Press the show/hide key (Super+Alt+D), or `omarchy-shell glassdock toggle` |
+| Turn Glass Dock off | `omarchy plugin disable jesperfiltenborg.glassdock` (`enable` turns it back on) |
+| Remove it | `omarchy plugin remove jesperfiltenborg.glassdock`, then delete the two lines from `hyprland.lua` |
+
+> [!IMPORTANT]
+> **Disabling the plugin leaves Alt+Tab doing nothing** until you change
+> `hyprland.lua`. A disabled plugin stays on disk, so the snippet still loads
+> and still binds Alt+Tab to the switcher, but nothing is running to answer.
+> To get Omarchy's Alt+Tab back while the plugin is disabled, either delete
+> the two lines or put `glassdock_alt_tab = false` above them, then run
+> `hyprctl reload`. Turning off "Use Glass Dock for Alt+Tab" in Dock Settings
+> doesn't help here, because the settings window isn't running either.
+>
+> Removing the plugin doesn't have this problem: the file is gone, so the
+> `io.open` guard skips the snippet and Omarchy's Alt+Tab returns after
+> `hyprctl reload`. The blur settings go with it too.
+
+The show/hide key is bound by the running plugin, not by `hyprland.lua`, so it
+goes away by itself when the plugin is disabled or removed.
 
 ## Controls
 
@@ -93,6 +117,7 @@ the two lines from `hyprland.lua`.
 | Preview  | Click, middle click or ✕  | Focus, or close the window                              |
 | Anywhere | Alt+Tab, Alt+Shift+Tab    | Next or previous app                                    |
 | Anywhere | `` Alt+` ``, `` Alt+Shift+` `` | Next or previous window of the selected app        |
+| Anywhere | Super+Alt+D               | Show or hide the dock (set by `toggleKey`)              |
 | Switcher | ← → ↑ ↓                   | Move between apps and windows                           |
 | Switcher | Release Alt or Enter      | Switch                                                  |
 | Switcher | Esc                       | Cancel                                                  |
@@ -111,6 +136,8 @@ with defaults on first run and picks up edits immediately.
 | Key                            | Default | Meaning                                              |
 | ------------------------------ | ------- | ---------------------------------------------------- |
 | `pinned`                       | `[]`    | App ids kept in the dock, in order                   |
+| `showDock`                     | `true`  | Show the dock; the show/hide key and `toggle`/`show`/`hide` change it, and it survives restarts |
+| `toggleKey`                    | `"SUPER + ALT + D"` | Hyprland key combination that shows or hides the dock (`""` for none). Needs Super, Ctrl or Alt, except F-keys |
 | `monitors`                     | `[]`    | Output names to show the dock on (empty means all)   |
 | `iconSize`                     | `52`    | Icon size in px                                      |
 | `magnification`                | `1.55`  | Hover zoom (`1` disables it)                         |
@@ -118,9 +145,11 @@ with defaults on first run and picks up edits immediately.
 | `margin`                       | `10`    | Gap between the dock and the screen edge             |
 | `showOnHover`                  | `false` | Hidden until the pointer comes near the dock         |
 | `revealArea`                   | `24`    | px above the dock's spot that also reveal it (6× that to each side) |
+| `showDelay`                    | `100`   | ms the pointer must stay near a show-on-hover dock before it shows |
 | `hideDelay`                    | `600`   | ms before a show-on-hover dock hides again           |
 | `overlay`                      | `false` | Float over windows instead of reserving space        |
 | `showRunningSeparator`         | `true`  | Divider between pinned and running apps              |
+| `animations`                   | `true`  | Animate the dock, previews, switcher and settings window; off makes every change instant |
 | `style`                        | `"glass"` | Design: `"glass"` or `"omarchy"` (follows the Omarchy style guide) |
 | `glassOpacity`                 | `0.32`  | Tint strength; keep it above the 0.12 blur threshold |
 | `glassHighlight`               | `0.14`  | Strength of the top-edge sheen                       |
@@ -133,6 +162,8 @@ with defaults on first run and picks up edits immediately.
 | `switcherCardWidth`            | `280`   | Switcher card width                                  |
 | `switcherRevealDelay`          | `90`    | ms before the overlay appears; quicker taps switch without it |
 | `switcherCurrentWorkspaceOnly` | `false` | Limit Alt+Tab to the current workspace               |
+| `switcherDisplay`              | `"focused"` | Where Alt+Tab shows: `"focused"` (current display), `"primary"` (main display) or `"all"` (mirrored on every display) |
+| `switcherMainDisplay`          | `""`    | Output name of the main display, e.g. `"DP-3"` (empty means the first display) |
 
 App ids are what `hyprctl clients` reports as `class`. The fastest way to pin
 an app is from its right-click menu, or run `omarchy-shell glassdock pinFocused`.
@@ -149,16 +180,16 @@ omarchy-shell glassdock <method> [arg]
 | `nextWindow`, `prevWindow`             | Step through the selected app's windows           |
 | `commit`, `cancel`                     | Switch to the selection, or close the switcher    |
 | `settings`, `openSettings`, `closeSettings` | Toggle, open or close the settings window    |
-| `toggle`, `show`, `hide`               | Show or hide the dock                             |
+| `toggle`, `show`, `hide`               | Show or hide the dock (saved as `showDock`)       |
 | `pin <appId>`, `unpin <appId>`, `pinFocused` | Manage pinned apps                          |
 | `state`                                | JSON dump of what the dock sees, for debugging    |
 | `config`                               | JSON dump of the settings the dock is running with |
 
-For example, to bind a key that toggles the dock:
-
-```lua
-o.bind("SUPER + SHIFT + D", "Toggle dock", "omarchy-shell -q glassdock toggle")
-```
+The show/hide key (`toggleKey`) is the built-in way to bind `toggle`. The
+plugin binds it itself with `hyprctl eval` while the shell runs, and rebinds it
+after `hyprctl reload`, so it needs no line in `hyprland.lua`. If you'd rather
+bind it yourself, set `toggleKey` to `""` and bind
+`omarchy-shell -q glassdock toggle` in your Hyprland config.
 
 ## Known limitations
 
@@ -167,18 +198,26 @@ o.bind("SUPER + SHIFT + D", "Toggle dock", "omarchy-shell -q glassdock toggle")
 - With Show on hover and Act as overlay both on, the reveal area lies over
   your windows. Clicks in it (just above the dock's spot) go to the dock, not
   the window. Set Reveal area to 0 to keep that to the dock's own footprint.
+- Disabling the plugin without editing `hyprland.lua` leaves Alt+Tab doing
+  nothing. See [Disable or uninstall](#disable-or-uninstall).
+- A combination Hyprland already binds can't be recorded for the show/hide
+  key, because Hyprland handles it before the settings window sees it. That
+  usually means it's taken; pick another, or type it into `toggleKey`.
 - Alt+Tab can't be exercised with `wtype` or other virtual keyboards, because
   Hyprland ignores their binds. Use the IPC methods to script it.
 
 ## Development
 
-The plugin is split into a data layer (`core/`) and views (`ui/`). See
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the pieces fit and where
-to extend them.
+The plugin is split into pure logic (`core/lib/`), a data layer (`core/`) and
+views (`ui/`). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the
+pieces fit and where to extend them. Working with an AI coding agent? Point
+it at [AGENTS.md](AGENTS.md). Claude Code also picks up the project skills in
+`.claude/skills/`.
 
 ```bash
 scripts/dev-sync.sh           # copy into ~/.config/omarchy/plugins and restart the shell
 scripts/dev-sync.sh --watch   # do that on every save
+scripts/dev-tools.sh          # inspect the live dock: layers, screenshots, pointer, logs, IPC
 omarchy plugin validate .
 ```
 
@@ -192,7 +231,8 @@ Shell logs: `journalctl --user -f | grep -i glassdock`.
 ### Tests
 
 ```bash
-scripts/test.sh            # static checks + unit + Lua tests (what CI runs)
+scripts/test.sh            # lint + static checks + unit + Lua tests (what CI runs)
+scripts/lint.sh --fix      # apply formatters (biome, stylua, shfmt) and whitespace fixes
 scripts/test.sh unit       # node --test tests/unit/
 scripts/test.sh lua        # hypr/glassdock.lua against a fake Hyprland
 scripts/test.sh static     # qmllint gate, JS/Lua syntax, manifest, debug leftovers
@@ -202,7 +242,10 @@ scripts/test.sh e2e --sync # install the working tree first, then smoke test
 
 You need Node 20 or newer, Lua 5.4, `qmllint` (from `qt6-declarative`),
 `quickshell` (for its QML type info) and `jq`. An Omarchy install already has
-all of these except possibly Lua. There are no packages to install.
+all of these except possibly Lua. For linting you also need
+`sudo pacman -S --needed shellcheck shfmt stylua luacheck biome`.
+`scripts/setup-dev.sh` enables a pre-commit hook that runs lint and the unit
+tests.
 
 | Suite      | What it covers |
 | ---------- | -------------- |
@@ -216,6 +259,12 @@ for every push and pull request.
 
 To test new logic, put it in a pure function in `core/lib/`, import it from
 QML (`import "lib/x.mjs" as X`), and add a test in `tests/unit/`.
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
+workflow, [docs/STYLE_GUIDE.md](docs/STYLE_GUIDE.md) for code style and
+linting, and the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Credits
 

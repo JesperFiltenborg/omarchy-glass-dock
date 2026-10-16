@@ -19,7 +19,7 @@ Item {
   readonly property int count: windows.length
 
   scale: selected ? 1.0 : 0.94
-  Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+  Behavior on scale { enabled: root.theme.animate; NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
   Rectangle {
     anchors.fill: parent
@@ -27,7 +27,7 @@ Item {
     color: root.selected ? root.theme.selectedFill : root.theme.alpha(root.theme.text, 0.04)
     border.width: root.selected ? 2 : 1
     border.color: root.selected ? root.theme.selectedRim : root.theme.rimSoft
-    Behavior on color { ColorAnimation { duration: 120 } }
+    Behavior on color { enabled: root.theme.animate; ColorAnimation { duration: 120 } }
   }
 
   Item {

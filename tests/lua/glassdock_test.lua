@@ -10,23 +10,48 @@ local snippet = root .. "hypr/glassdock.lua"
 -- ---- fake Hyprland ----------------------------------------------------------------
 
 local function fake_hl()
-  local hl = { binds = {}, unbound = {}, config_calls = {}, window_rules = {}, layer_rules = {},
-               dispatched = {}, listeners = {} }
+  local hl = {
+    binds = {},
+    unbound = {},
+    config_calls = {},
+    window_rules = {},
+    layer_rules = {},
+    dispatched = {},
+    listeners = {},
+  }
 
   function hl.bind(keys, dispatcher, opts)
     local handle = { keys = keys, dispatcher = dispatcher, opts = opts or {}, active = true }
-    function handle:unbind() self.active = false end
+    function handle:unbind()
+      self.active = false
+    end
     table.insert(hl.binds, handle)
     return handle
   end
-  function hl.unbind(keys) table.insert(hl.unbound, keys) end
-  function hl.config(t) table.insert(hl.config_calls, t) end
-  function hl.window_rule(t) table.insert(hl.window_rules, t) end
-  function hl.layer_rule(t) table.insert(hl.layer_rules, t) end
-  function hl.dispatch(d) table.insert(hl.dispatched, d) end
-  function hl.on(event, fn) hl.listeners[event] = fn end
+  function hl.unbind(keys)
+    table.insert(hl.unbound, keys)
+  end
+  function hl.config(t)
+    table.insert(hl.config_calls, t)
+  end
+  function hl.window_rule(t)
+    table.insert(hl.window_rules, t)
+  end
+  function hl.layer_rule(t)
+    table.insert(hl.layer_rules, t)
+  end
+  function hl.dispatch(d)
+    table.insert(hl.dispatched, d)
+  end
+  function hl.on(event, fn)
+    hl.listeners[event] = fn
+  end
 
-  hl.dsp = { exec_cmd = function(cmd) return { exec = cmd } end }
+  hl.dsp = {
+    exec_cmd = function(cmd)
+      return { exec = cmd }
+    end,
+  }
   return hl
 end
 
@@ -41,18 +66,26 @@ end
 local function active_bind(hl, keys)
   for i = #hl.binds, 1, -1 do
     local b = hl.binds[i]
-    if b.active and b.keys == keys then return b end
+    if b.active and b.keys == keys then
+      return b
+    end
   end
 end
 
 local function count_active(hl, pred)
   local n = 0
-  for _, b in ipairs(hl.binds) do if b.active and pred(b) then n = n + 1 end end
+  for _, b in ipairs(hl.binds) do
+    if b.active and pred(b) then
+      n = n + 1
+    end
+  end
   return n
 end
 
 local function release_binds(hl)
-  return count_active(hl, function(b) return b.opts.release end)
+  return count_active(hl, function(b)
+    return b.opts.release
+  end)
 end
 
 local function last_exec(hl)
@@ -97,8 +130,10 @@ test("layer rules match the dock and every glassdock-* layer, fully", function()
   -- Hyprland full-matches layer regexes; emulate with anchors via Lua patterns.
   eq(pattern, "^glassdock(-.*)?$", "namespace regex")
   eq(hl.layer_rules[1].blur, true, "blur")
-  assert(hl.layer_rules[1].ignore_alpha > 0 and hl.layer_rules[1].ignore_alpha < 0.15,
-    "ignore_alpha must stay below the minimum glass tint (0.15)")
+  assert(
+    hl.layer_rules[1].ignore_alpha > 0 and hl.layer_rules[1].ignore_alpha < 0.15,
+    "ignore_alpha must stay below the minimum glass tint (0.15)"
+  )
 end)
 
 test("replaces Omarchy's Alt+Tab binds", function()
@@ -134,7 +169,9 @@ end)
 
 test("repeated Alt+Tab does not stack release binds", function()
   local hl = load()
-  for _ = 1, 3 do active_bind(hl, "ALT + TAB").dispatcher() end
+  for _ = 1, 3 do
+    active_bind(hl, "ALT + TAB").dispatcher()
+  end
   eq(release_binds(hl), 4, "release binds")
 end)
 

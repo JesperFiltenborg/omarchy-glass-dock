@@ -15,6 +15,8 @@ QtObject {
   required property var settings
 
   readonly property bool glass: settings.cfg.style !== "omarchy"
+  // Off: every Behavior and the launch bounce are disabled, so changes are instant.
+  readonly property bool animate: settings.cfg.animations
 
   readonly property color base: Color.background
   readonly property color text: Color.foreground

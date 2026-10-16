@@ -40,6 +40,9 @@ describe("monitors", () => {
   it("filters screens by name", () => {
     const screens = all.map(name => ({ name }))
     assert.deepEqual(S.screensFor(screens, []), screens)
-    assert.deepEqual(S.screensFor(screens, ["DP-3"]).map(s => s.name), ["DP-3"])
+    assert.deepEqual(
+      S.screensFor(screens, ["DP-3"]).map(s => s.name),
+      ["DP-3"],
+    )
   })
 })

@@ -8,8 +8,15 @@ const entries = [
   entry("chromium", { name: "Chromium", command: ["/usr/bin/chromium", "%U"] }),
   entry("org.gnome.Nautilus", { name: "Files", icon: "org.gnome.Nautilus", command: ["nautilus"] }),
   entry("foot", { name: "Foot", startupClass: "foot" }),
-  entry("YouTube", { name: "YouTube", icon: "youtube", command: ["omarchy-launch-webapp", "https://youtube.com/"] }),
-  entry("Basecamp", { name: "Basecamp", command: ["omarchy-launch-webapp", "https://launchpad.37signals.com"] }),
+  entry("YouTube", {
+    name: "YouTube",
+    icon: "youtube",
+    command: ["omarchy-launch-webapp", "https://youtube.com/"],
+  }),
+  entry("Basecamp", {
+    name: "Basecamp",
+    command: ["omarchy-launch-webapp", "https://launchpad.37signals.com"],
+  }),
   entry("steam", { name: "Steam", startupClass: "steam", command: ["steam-runtime"] }),
   entry("hidden-helper", { noDisplay: true }),
 ]
@@ -78,8 +85,11 @@ describe("displayName", () => {
 
 describe("iconCandidates", () => {
   it("tries the entry icon, then the id variants, without duplicates", () => {
-    assert.deepEqual(A.iconCandidates("org.gnome.Nautilus", { icon: "org.gnome.Nautilus" }),
-      ["org.gnome.Nautilus", "org.gnome.nautilus", "nautilus"])
+    assert.deepEqual(A.iconCandidates("org.gnome.Nautilus", { icon: "org.gnome.Nautilus" }), [
+      "org.gnome.Nautilus",
+      "org.gnome.nautilus",
+      "nautilus",
+    ])
   })
 
   it("adds a generic browser icon for unmatched web apps", () => {

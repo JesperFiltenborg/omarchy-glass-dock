@@ -21,16 +21,20 @@ Item {
   // the settings window restores these and keeps the pinned apps.
   readonly property var defaults: ({
     // Dock
+    showDock: true,             // false hides the dock everywhere (IPC toggle/show/hide flip this)
+    toggleKey: "SUPER + ALT + D", // Hyprland combo that shows/hides the dock; "" = no bind
     monitors: [],               // [] = every monitor, else output names e.g. ["DP-3"]
     iconSize: 52,
     magnification: 1.55,        // 1.0 disables hover magnification
     magnificationRange: 3,      // neighbours (in icons) affected by magnification
     margin: 10,                 // gap between dock and screen edge
     showOnHover: false,         // hidden until the pointer enters the dock's area
+    showDelay: 100,             // ms the pointer must stay near a show-on-hover dock before it shows
     hideDelay: 600,             // ms before a show-on-hover dock hides again
     revealArea: 24,             // px around the dock that also reveals it
     overlay: false,             // float over windows instead of reserving space
     showRunningSeparator: true,
+    animations: true,           // false makes every transition instant (cheapest to draw)
     // Design: "glass" (liquid glass) or "omarchy" (Omarchy's own style guide)
     style: "glass",
     // Glass
@@ -46,7 +50,9 @@ Item {
     switcher: true,
     switcherCardWidth: 280,
     switcherRevealDelay: 90,    // quick taps under this switch without flashing UI
-    switcherCurrentWorkspaceOnly: false
+    switcherCurrentWorkspaceOnly: false,
+    switcherDisplay: "focused",   // "focused" | "primary" | "all": where Alt+Tab shows
+    switcherMainDisplay: ""       // monitor for "primary"; "" = the first monitor
   })
 
   function set(key, value) {
@@ -91,16 +97,20 @@ Item {
 
       // Initialised from `defaults`; the file's values replace them on load.
       property var pinned: []
+      property bool showDock: root.defaults.showDock
+      property string toggleKey: root.defaults.toggleKey
       property var monitors: root.defaults.monitors
       property int iconSize: root.defaults.iconSize
       property real magnification: root.defaults.magnification
       property int magnificationRange: root.defaults.magnificationRange
       property int margin: root.defaults.margin
       property bool showOnHover: root.defaults.showOnHover
+      property int showDelay: root.defaults.showDelay
       property int hideDelay: root.defaults.hideDelay
       property int revealArea: root.defaults.revealArea
       property bool overlay: root.defaults.overlay
       property bool showRunningSeparator: root.defaults.showRunningSeparator
+      property bool animations: root.defaults.animations
       property string style: root.defaults.style
       property real glassOpacity: root.defaults.glassOpacity
       property real glassHighlight: root.defaults.glassHighlight
@@ -113,6 +123,8 @@ Item {
       property int switcherCardWidth: root.defaults.switcherCardWidth
       property int switcherRevealDelay: root.defaults.switcherRevealDelay
       property bool switcherCurrentWorkspaceOnly: root.defaults.switcherCurrentWorkspaceOnly
+      property string switcherDisplay: root.defaults.switcherDisplay
+      property string switcherMainDisplay: root.defaults.switcherMainDisplay
     }
   }
 }

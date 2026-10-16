@@ -53,7 +53,7 @@ PanelWindow {
   property real lastHoverPos: -1
   // No zoom until the dock has finished sliding in: zooming mid-slide wobbles.
   property real zoomAmount: hoverPos >= 0 && revealProgress > 0.98 ? 1 : 0
-  Behavior on zoomAmount { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+  Behavior on zoomAmount { enabled: win.theme.animate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
 
   function hoverAt(pos) {
     hoverPos = pos
@@ -158,8 +158,8 @@ PanelWindow {
   //
   // One hover zone (hotZone, inside `stage`) drives everything. While hidden it covers the
   // dock's resting footprint plus `revealArea` px around it; while shown, the
-  // (possibly magnified) shelf plus the same margin. A short dwell before showing stops accidental reveals when the
-  // pointer only passes through.
+  // (possibly magnified) shelf plus the same margin. The `showDelay` dwell
+  // before showing stops accidental reveals when the pointer only passes through.
 
   readonly property bool hoverMode: settings.cfg.showOnHover
   property bool shown: false
@@ -168,6 +168,7 @@ PanelWindow {
   // 0 = hidden, 1 = shown. Ease out when appearing, ease in when leaving.
   property real revealProgress: revealed ? 1 : 0
   Behavior on revealProgress {
+    enabled: win.theme.animate
     NumberAnimation {
       duration: win.revealed ? 260 : 190
       easing.type: win.revealed ? Easing.OutCubic : Easing.InCubic
@@ -194,7 +195,7 @@ PanelWindow {
 
   Timer {
     id: revealTimer
-    interval: win.settings.cfg.overlay ? 140 : 60
+    interval: win.settings.cfg.showDelay
     onTriggered: if (win.isEngaged()) win.shown = true
   }
 
@@ -326,10 +327,10 @@ PanelWindow {
       y: (win.popupKind === "tooltip" ? shelf.y : win.height - win.margin - win.shelfHeight - win.zoomHeadroom) - height - 12
       visible: opacity > 0
       opacity: open ? 1 : 0
-      Behavior on opacity { NumberAnimation { duration: 130 } }
+      Behavior on opacity { enabled: win.theme.animate; NumberAnimation { duration: 130 } }
       transform: Translate {
         y: popup.open ? 0 : 8
-        Behavior on y { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+        Behavior on y { enabled: win.theme.animate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
       }
 
       HoverHandler {

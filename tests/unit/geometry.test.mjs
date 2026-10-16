@@ -38,14 +38,24 @@ describe("peakZoom", () => {
 
 describe("hotZone", () => {
   const base = {
-    hoverMode: true, revealed: false, revealArea: 24,
-    shelfX: 1000, shelfY: 380, shelfWidth: 200,
-    restingTop: 400, windowWidth: 3440, windowHeight: 500,
+    hoverMode: true,
+    revealed: false,
+    revealArea: 24,
+    shelfX: 1000,
+    shelfY: 380,
+    shelfWidth: 200,
+    restingTop: 400,
+    windowWidth: 3440,
+    windowHeight: 500,
   }
 
   it("without show-on-hover it is exactly the shelf", () => {
-    assert.deepEqual(G.hotZone({ ...base, hoverMode: false, revealed: true }),
-      { x: 1000, y: 380, width: 200, height: 120 })
+    assert.deepEqual(G.hotZone({ ...base, hoverMode: false, revealed: true }), {
+      x: 1000,
+      y: 380,
+      width: 200,
+      height: 120,
+    })
   })
 
   it("while hidden it reaches revealArea above the resting top and 6x sideways", () => {

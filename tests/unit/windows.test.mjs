@@ -7,7 +7,9 @@ const appIdOf = w => w.app
 
 describe("groupWindows", () => {
   it("groups by app id with windows most recent first", () => {
-    const a1 = win("a1", "chromium"), a2 = win("a2", "chromium"), b = win("b", "foot")
+    const a1 = win("a1", "chromium"),
+      a2 = win("a2", "chromium"),
+      b = win("b", "foot")
     const groups = W.groupWindows([a1, a2, b], ["a2", "b", "a1"], appIdOf)
     assert.deepEqual(Object.keys(groups).sort(), ["chromium", "foot"])
     assert.deepEqual(groups.chromium.windows, [a2, a1])
@@ -15,7 +17,8 @@ describe("groupWindows", () => {
   })
 
   it("puts windows never focused after focused ones", () => {
-    const seen = win("seen", "x"), unseen = win("unseen", "x")
+    const seen = win("seen", "x"),
+      unseen = win("unseen", "x")
     assert.deepEqual(W.groupWindows([unseen, seen], ["seen"], appIdOf).x.windows, [seen, unseen])
   })
 
@@ -49,16 +52,25 @@ describe("runningApps", () => {
 })
 
 describe("switcherApps", () => {
-  const a1 = win("a1", "a"), a2 = win("a2", "a"), b1 = win("b1", "b"), c1 = win("c1", "c")
+  const a1 = win("a1", "a"),
+    a2 = win("a2", "a"),
+    b1 = win("b1", "b"),
+    c1 = win("c1", "c")
   const groups = W.groupWindows([a1, a2, b1, c1], ["b1", "a2", "c1", "a1"], appIdOf)
 
   it("orders apps by their most recent window", () => {
-    assert.deepEqual(W.switcherApps(groups, ["b1", "a2", "c1", "a1"]).map(x => x.appId), ["b", "a", "c"])
+    assert.deepEqual(
+      W.switcherApps(groups, ["b1", "a2", "c1", "a1"]).map(x => x.appId),
+      ["b", "a", "c"],
+    )
   })
 
   it("applies the window filter and drops apps left empty", () => {
     const list = W.switcherApps(groups, ["b1", "a2", "c1", "a1"], w => w.address !== "b1")
-    assert.deepEqual(list.map(x => x.appId), ["a", "c"])
+    assert.deepEqual(
+      list.map(x => x.appId),
+      ["a", "c"],
+    )
   })
 })
 
@@ -94,7 +106,9 @@ describe("seedMru", () => {
 })
 
 describe("clickTarget", () => {
-  const w1 = win("1", "x"), w2 = win("2", "x"), w3 = win("3", "x")
+  const w1 = win("1", "x"),
+    w2 = win("2", "x"),
+    w3 = win("3", "x")
 
   it("focuses the latest window of an unfocused app", () => {
     assert.equal(W.clickTarget([w1, w2], w3, false), w1)
@@ -111,7 +125,9 @@ describe("clickTarget", () => {
 })
 
 describe("cycleTarget", () => {
-  const wa = win("0xa", "x"), wb = win("0xb", "x"), wc = win("0xc", "x")
+  const wa = win("0xa", "x"),
+    wb = win("0xb", "x"),
+    wc = win("0xc", "x")
 
   it("cycles in a stable address order, both directions, wrapping", () => {
     const mruOrder = [wc, wa, wb]

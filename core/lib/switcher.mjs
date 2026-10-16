@@ -34,7 +34,7 @@ export function stepWindow(windowIndex, delta, count) {
 
 /** Live windows of an app entry (closed windows lose their address). */
 export function liveWindows(app) {
-  return app ? app.windows.filter(w => w && w.address) : []
+  return app ? app.windows.filter(w => w?.address) : []
 }
 
 /**
@@ -43,9 +43,7 @@ export function liveWindows(app) {
  * Returns null when nothing is left (the switcher should cancel).
  */
 export function reconcile(snapshot, live, selectedAppId, appIndex, windowIndex) {
-  const apps = snapshot
-    .map(a => live.find(l => l.appId === a.appId))
-    .filter(a => a)
+  const apps = snapshot.map(a => live.find(l => l.appId === a.appId)).filter(a => a)
   if (!apps.length) return null
   const at = apps.findIndex(a => a.appId === selectedAppId)
   const nextApp = at === -1 ? Math.min(appIndex, apps.length - 1) : at
@@ -65,4 +63,23 @@ export function noteClosedCommit(now, lastClosed, lastEarlyCommit) {
 /** Whether an opening call should commit at once (Alt already released). */
 export function isQuickTap(now, lastEarlyCommit) {
   return now - lastEarlyCommit < EARLY_RELEASE_MS
+}
+
+/**
+ * Monitor names the switcher shows on, chosen when it opens:
+ *   "focused"  the monitor with the focused window (default)
+ *   "primary"  the configured main monitor
+ *   "all"      every monitor, mirrored
+ * A focused or main monitor that isn't connected falls back to the first one.
+ */
+export function switcherScreens(mode, all, focused, primary) {
+  if (!all.length) return []
+  if (mode === "all") return all.slice()
+  const wanted = mode === "primary" ? primary : focused
+  return [all.indexOf(wanted) !== -1 ? wanted : all[0]]
+}
+
+/** The one switcher panel that takes the keyboard: on the focused monitor if shown there. */
+export function keyboardScreen(shown, focused) {
+  return shown.indexOf(focused) !== -1 ? focused : shown[0] || ""
 }

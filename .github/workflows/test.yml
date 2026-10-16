@@ -12,9 +12,13 @@ jobs:
     container: archlinux:latest
     steps:
       - name: Install tools
-        run: pacman -Syu --noconfirm --needed git nodejs lua qt6-declarative quickshell jq
+        run: >-
+          pacman -Syu --noconfirm --needed git nodejs lua qt6-declarative quickshell jq
+          shellcheck shfmt stylua luacheck biome
 
       - uses: actions/checkout@v4
 
-      - name: Static checks, unit tests, Lua tests
+      - name: Lint, static checks, unit tests, Lua tests
+        env:
+          LINT_STRICT: "1"
         run: scripts/test.sh

@@ -38,7 +38,12 @@ end
 
 -- ignore_alpha keeps the transparent headroom above the shelf (where magnified
 -- icons and popups appear) from being blurred into a grey slab.
-hl.layer_rule({ name = "glassdock-glass", match = { namespace = "^glassdock(-.*)?$" }, blur = true, ignore_alpha = 0.12 })
+hl.layer_rule({
+  name = "glassdock-glass",
+  match = { namespace = "^glassdock(-.*)?$" },
+  blur = true,
+  ignore_alpha = 0.12,
+})
 -- The dock animates itself; Hyprland's layer slide would fight it.
 hl.layer_rule({ name = "glassdock-no-anim", match = { namespace = "^glassdock(-.*)?$" }, no_anim = true })
 
@@ -56,8 +61,12 @@ if glassdock_alt_tab ~= false then
   local release_binds = nil
 
   local function disarm()
-    if not release_binds then return end
-    for _, b in ipairs(release_binds) do b:unbind() end
+    if not release_binds then
+      return
+    end
+    for _, b in ipairs(release_binds) do
+      b:unbind()
+    end
     release_binds = nil
   end
 
@@ -67,7 +76,9 @@ if glassdock_alt_tab ~= false then
   end
 
   local function arm()
-    if release_binds then return end
+    if release_binds then
+      return
+    end
     release_binds = {}
     for _, combo in ipairs({ "ALT + ALT_L", "ALT + ALT_R", "ALT + SHIFT + ALT_L", "ALT + SHIFT + ALT_R" }) do
       table.insert(release_binds, hl.bind(combo, commit, { release = true, description = "Glass Dock: switch" }))
@@ -91,6 +102,8 @@ if glassdock_alt_tab ~= false then
   hl.bind("ALT + SHIFT + GRAVE", step("prevWindow"), { description = "Glass Dock: previous window of app" })
 
   hl.on("layer.closed", function(layer)
-    if layer.namespace == "glassdock-switcher" then disarm() end
+    if layer.namespace == "glassdock-switcher" then
+      disarm()
+    end
   end)
 end

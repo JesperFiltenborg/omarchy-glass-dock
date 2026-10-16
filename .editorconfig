@@ -1,0 +1,27 @@
+# Shared editor settings. shfmt reads the [*.sh] section too.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+# Two trailing spaces are a Markdown line break; we don't use them, but keep
+# editors from fighting over it.
+trim_trailing_whitespace = false
+
+[*.sh]
+switch_case_indent = true
+
+[scripts/*]
+switch_case_indent = true
+
+[tests/e2e/*]
+switch_case_indent = true
+
+[.githooks/*]
+switch_case_indent = true

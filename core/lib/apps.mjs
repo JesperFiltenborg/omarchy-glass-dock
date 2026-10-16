@@ -7,16 +7,24 @@
 
 /** Build lookup tables from desktop entries. */
 export function buildIndex(entries) {
-  const byId = {}, byClass = {}, byName = {}, byExec = {}, webapps = []
+  const byId = {},
+    byClass = {},
+    byName = {},
+    byExec = {},
+    webapps = []
   for (const e of entries || []) {
     if (!e || e.noDisplay) continue
-    byId[String(e.id).toLowerCase().replace(/\.desktop$/, "")] = e
+    byId[
+      String(e.id)
+        .toLowerCase()
+        .replace(/\.desktop$/, "")
+    ] = e
     if (e.startupClass) byClass[String(e.startupClass).toLowerCase()] = e
     if (e.name) byName[String(e.name).toLowerCase()] = e
     const cmd = (e.command || []).join(" ")
-    const url = cmd.match(/https?:\/\/([^\/\s"']+)/)
+    const url = cmd.match(/https?:\/\/([^/\s"']+)/)
     if (url) webapps.push({ host: url[1].toLowerCase(), entry: e })
-    else if (e.command && e.command.length) {
+    else if (e.command?.length) {
       const bin = String(e.command[0]).split("/").pop().toLowerCase()
       if (!(bin in byExec)) byExec[bin] = e
     }
@@ -44,25 +52,34 @@ export function lookup(index, appId) {
   const host = webappHost(appId)
   let entry = null
   if (host) {
-    const hit = index.webapps.find(w => w.host === host || host.endsWith("." + w.host) || w.host.endsWith("." + host))
+    const hit = index.webapps.find(
+      w => w.host === host || host.endsWith(`.${w.host}`) || w.host.endsWith(`.${host}`),
+    )
     entry = hit ? hit.entry : null
   }
-  entry = entry
-    || index.byClass[key] || index.byId[key]
-    || index.byId[tail] || index.byClass[tail]
-    || index.byName[key] || index.byName[tail]
-    || index.byExec[key] || index.byExec[tail]
-    || null
+  entry =
+    entry ||
+    index.byClass[key] ||
+    index.byId[key] ||
+    index.byId[tail] ||
+    index.byClass[tail] ||
+    index.byName[key] ||
+    index.byName[tail] ||
+    index.byExec[key] ||
+    index.byExec[tail] ||
+    null
   cache[appId] = entry
   return entry
 }
 
 /** Human name: the entry's name, a web app's host, or a tidied app id. */
 export function displayName(appId, entry) {
-  if (entry && entry.name) return entry.name
+  if (entry?.name) return entry.name
   const host = webappHost(appId)
   if (host) return host.replace(/^www\./, "")
-  const tail = String(appId || "").split(".").pop()
+  const tail = String(appId || "")
+    .split(".")
+    .pop()
   return tail ? tail.charAt(0).toUpperCase() + tail.slice(1) : "Unknown"
 }
 
@@ -72,7 +89,7 @@ export function displayName(appId, entry) {
  */
 export function iconCandidates(appId, entry) {
   const candidates = []
-  if (entry && entry.icon) candidates.push(String(entry.icon))
+  if (entry?.icon) candidates.push(String(entry.icon))
   if (appId) {
     const id = String(appId)
     candidates.push(id, id.toLowerCase(), id.split(".").pop().toLowerCase())
@@ -86,7 +103,7 @@ export function iconCandidates(appId, entry) {
  * their own systemd scope instead of being children of the shell.
  */
 export function launchCommand(appId, entry) {
-  if (entry) return ["uwsm-app", "--", String(entry.id).replace(/\.desktop$/, "") + ".desktop"]
+  if (entry) return ["uwsm-app", "--", `${String(entry.id).replace(/\.desktop$/, "")}.desktop`]
   if (appId) return ["uwsm-app", "--", String(appId).toLowerCase()]
   return null
 }

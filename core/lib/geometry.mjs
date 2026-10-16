@@ -11,7 +11,7 @@ export function zoomFor(slot, hoverPos, magnification, range, amount) {
   range = Math.max(1, range)
   const d = Math.abs(slot + 0.5 - hoverPos)
   if (d >= range) return 1
-  return 1 + (magnification - 1) * amount * (Math.cos(d / range * Math.PI) + 1) / 2
+  return 1 + ((magnification - 1) * amount * (Math.cos((d / range) * Math.PI) + 1)) / 2
 }
 
 /** Largest zoom across `count` slots: how much the shelf has to grow. */
@@ -31,8 +31,17 @@ export const SIDE_REACH_FACTOR = 6
  * either way, so a pointer resting in the outer area can't summon the dock
  * and then immediately hide it. Without show-on-hover it is just the shelf.
  */
-export function hotZone({ hoverMode, revealed, revealArea, shelfX, shelfY, shelfWidth,
-                          restingTop, windowWidth, windowHeight }) {
+export function hotZone({
+  hoverMode,
+  revealed,
+  revealArea,
+  shelfX,
+  shelfY,
+  shelfWidth,
+  restingTop,
+  windowWidth,
+  windowHeight,
+}) {
   const reach = hoverMode ? revealArea : 0
   const side = reach * SIDE_REACH_FACTOR
   const edge = revealed ? shelfY : restingTop

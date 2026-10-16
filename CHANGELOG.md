@@ -1,5 +1,46 @@
 # Changelog
 
+## 1.2.0 — 2026-10-17
+
+- **Show/hide key.** Super+Alt+D hides or shows the dock. Change it in Dock
+  Settings → Dock (click the field, press the combination), or remove it with
+  ✕. New key: `toggleKey` (a Hyprland combo, `""` for none). The plugin binds
+  it itself with `hyprctl eval`, rebinds it after `hyprctl reload`, and drops
+  it when unloaded, so it needs no `hyprland.lua` change.
+- **Show delay.** New setting `showDelay` (Dock Settings → Behaviour, default
+  100 ms): how long the pointer must stay near a show-on-hover dock before it
+  appears. It replaces the fixed delay (140 ms in overlay mode, 60 ms
+  otherwise).
+- **Animations toggle.** New setting `animations` (Dock Settings →
+  Behaviour). Off disables every animation, including the launch bounce, so
+  the dock, previews, switcher and settings window change instantly.
+- **Hidden stays hidden.** New setting `showDock` ("Show the dock"). The
+  `toggle`, `show` and `hide` IPC methods now change it, so the dock keeps its
+  state across restarts.
+- README: a "Disable or uninstall" section, including why disabling the
+  plugin leaves Alt+Tab doing nothing until `hyprland.lua` is changed. The
+  old README example bind (`SUPER + SHIFT + D`) clashed with Omarchy's Docker
+  bind and is gone.
+- New setting **Show on** (Dock Settings → Alt+Tab switcher) chooses where
+  Alt+Tab appears: the current display (default), a main display you pick,
+  or all displays, mirrored with the same selection.
+- New keys: `switcherDisplay` (`"focused"`, `"primary"` or `"all"`) and
+  `switcherMainDisplay` (an output name; empty means the first display).
+- The switcher is now a controller plus one panel per monitor
+  (`ui/SwitcherPanel.qml`). Only one panel takes the keyboard.
+- Contributor tooling: `AGENTS.md` (a guide for AI coding agents),
+  `CLAUDE.md`, and Claude Code project skills (`glassdock-develop`,
+  `glassdock-add-setting`, `glassdock-release`). New
+  `scripts/dev-tools.sh` for inspecting the live dock: layers, screenshots,
+  pointer moves, plugin logs, IPC and live settings edits.
+- Linting and formatting: `scripts/lint.sh [--fix]` runs biome (JS),
+  stylua and luacheck (Lua), shfmt and shellcheck (shell), the qmllint gate,
+  and a repo-wide whitespace/indent/line-length check. It runs in
+  `scripts/test.sh`, in CI (strict), and in an optional pre-commit hook
+  (`scripts/setup-dev.sh`).
+- Added `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1)
+  and `docs/STYLE_GUIDE.md`.
+
 ## 1.1.1 — 2026-10-17
 
 - Test suite: `scripts/test.sh` runs static checks (a qmllint gate, JS and Lua

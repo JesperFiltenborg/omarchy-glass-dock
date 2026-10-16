@@ -26,10 +26,15 @@ Item {
   readonly property alias theme: glassTheme
   readonly property alias switcher: switcherWindow
   readonly property alias settingsWindow: settingsWindow
-
-  property bool dockVisible: true
+  readonly property alias toggleKey: toggleKeyBind
 
   Settings { id: settingsStore }
+
+  ToggleKey {
+    id: toggleKeyBind
+    settings: settingsStore
+    suspended: settingsWindow.recordingKey
+  }
 
   AppIndex { id: appIndex }
 
@@ -44,7 +49,7 @@ Item {
   }
 
   Variants {
-    model: root.dockVisible && settingsStore.ready
+    model: settingsStore.ready && settingsStore.cfg.showDock
       ? SettingsLogic.screensFor(Quickshell.screens, settingsStore.cfg.monitors)
       : []
     Dock {
@@ -92,10 +97,10 @@ Item {
     function openSettings(): void { settingsWindow.open() }
     function closeSettings(): void { settingsWindow.close() }
 
-    // Dock
-    function toggle(): void { root.dockVisible = !root.dockVisible }
-    function show(): void { root.dockVisible = true }
-    function hide(): void { root.dockVisible = false }
+    // Dock. Shown/hidden is the `showDock` setting, so it survives restarts.
+    function toggle(): void { settingsStore.cfg.showDock = !settingsStore.cfg.showDock }
+    function show(): void { settingsStore.cfg.showDock = true }
+    function hide(): void { settingsStore.cfg.showDock = false }
     function pin(appId: string): void { if (!settingsStore.isPinned(appId)) settingsStore.togglePin(appId) }
     function unpin(appId: string): void { if (settingsStore.isPinned(appId)) settingsStore.togglePin(appId) }
     function pinFocused(): void {

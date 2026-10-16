@@ -10,7 +10,9 @@ const UNRANKED = 1e9
 /** Rank lookup: address -> position in the MRU list (0 = most recent). */
 export function rankOf(mru) {
   const rank = {}
-  mru.forEach((address, i) => { rank[address] = i })
+  mru.forEach((address, i) => {
+    rank[address] = i
+  })
   return rank
 }
 
@@ -106,7 +108,7 @@ export function cycleTarget(wins, active, step) {
 
 /** Hyprland window selector for an address, with or without a 0x prefix. */
 export function windowSelector(address) {
-  return "address:0x" + String(address).replace(/^0x/, "")
+  return `address:0x${String(address).replace(/^0x/, "")}`
 }
 
 /** Index wrapped into [0, n). */
