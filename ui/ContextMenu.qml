@@ -27,7 +27,7 @@ Item {
 
     width: column.width
     height: 30
-    radius: 8
+    radius: root.theme.r(8)
     color: rowMouse.containsMouse
       ? (destructive ? root.theme.alpha(root.theme.urgent, 0.35) : root.theme.hoverFill)
       : "transparent"
@@ -73,10 +73,10 @@ Item {
     color: root.theme.rimSoft
   }
 
-  GlassSurface {
+  Surface {
     anchors.fill: parent
     theme: root.theme
-    radius: 16
+    radius: root.theme.r(16)
     tint: root.theme.tintStrong
   }
 
@@ -136,6 +136,12 @@ Item {
     MenuRow {
       label: root.pinned ? "Remove from Dock" : "Keep in Dock"
       onTriggered: root.dock.settings.togglePin(root.appId)
+    }
+    Divider {}
+
+    MenuRow {
+      label: "Dock Settings…"
+      onTriggered: root.dock.settingsWindow.open()
     }
     MenuRow {
       visible: root.windows.length > 0

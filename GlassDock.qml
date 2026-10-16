@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import "core"
 import "ui"
 
@@ -23,6 +24,7 @@ Item {
   readonly property alias windows: windowModel
   readonly property alias theme: glassTheme
   readonly property alias switcher: switcherWindow
+  readonly property alias settingsWindow: settingsWindow
 
   property bool dockVisible: true
 
@@ -35,7 +37,7 @@ Item {
     settings: settingsStore
   }
 
-  GlassTheme {
+  Theme {
     id: glassTheme
     settings: settingsStore
   }
@@ -44,7 +46,7 @@ Item {
     model: {
       const wanted = settingsStore.cfg.monitors || []
       const screens = Quickshell.screens
-      return root.dockVisible
+      return root.dockVisible && settingsStore.ready
         ? (wanted.length ? screens.filter(s => wanted.indexOf(s.name) !== -1) : screens)
         : []
     }
@@ -58,19 +60,40 @@ Item {
     dock: root
   }
 
+  SettingsWindow {
+    id: settingsWindow
+    dock: root
+  }
+
+  function switchStep(delta, withinApp) {
+    if (settingsStore.cfg.switcher) {
+      if (withinApp) switcherWindow.stepWindow(delta)
+      else switcherWindow.step(delta)
+    } else if (!withinApp) {
+      Hyprland.dispatch(delta > 0 ? "hl.dsp.window.cycle_next()" : "hl.dsp.window.cycle_next({ next = false })")
+      Hyprland.dispatch("hl.dsp.window.bring_to_top()")
+    }
+  }
+
   // omarchy-shell glassdock <method> [arg]
   IpcHandler {
     target: "glassdock"
 
     function ping(): string { return "ok" }
 
-    // Alt+Tab switcher (see hypr/glassdock.lua)
-    function next(): void { if (settingsStore.cfg.switcher) switcherWindow.step(1) }
-    function prev(): void { if (settingsStore.cfg.switcher) switcherWindow.step(-1) }
-    function nextWindow(): void { if (settingsStore.cfg.switcher) switcherWindow.stepWindow(1) }
-    function prevWindow(): void { if (settingsStore.cfg.switcher) switcherWindow.stepWindow(-1) }
+    // Alt+Tab switcher (see hypr/glassdock.lua). With the switcher turned off
+    // in settings, Alt+Tab falls back to Omarchy's plain window cycling.
+    function next(): void { root.switchStep(1, false) }
+    function prev(): void { root.switchStep(-1, false) }
+    function nextWindow(): void { root.switchStep(1, true) }
+    function prevWindow(): void { root.switchStep(-1, true) }
     function commit(): void { switcherWindow.commit() }
     function cancel(): void { switcherWindow.cancel() }
+
+    // Settings window
+    function settings(): void { settingsWindow.toggle() }
+    function openSettings(): void { settingsWindow.open() }
+    function closeSettings(): void { settingsWindow.close() }
 
     // Dock
     function toggle(): void { root.dockVisible = !root.dockVisible }
@@ -81,6 +104,14 @@ Item {
     function pinFocused(): void {
       const id = windowModel.activeAppId
       if (id && !settingsStore.isPinned(id)) settingsStore.togglePin(id)
+    }
+
+    // Debugging: the settings the dock is actually running with.
+    function config(): string {
+      const out = {}
+      for (const key in settingsStore.defaults) out[key] = settingsStore.cfg[key]
+      out.pinned = settingsStore.cfg.pinned
+      return JSON.stringify(out, null, 2)
     }
 
     // Debugging: what the dock currently sees.

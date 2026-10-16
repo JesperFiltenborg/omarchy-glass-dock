@@ -25,7 +25,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    radius: 14
+    radius: root.theme.r(14)
     color: root.selected ? root.theme.selectedFill : (root.hovered ? root.theme.hoverFill : "transparent")
     border.width: root.selected ? 2 : 0
     border.color: root.theme.selectedRim
@@ -55,7 +55,7 @@ Item {
     // Placeholder until the first frame arrives (or for apps that refuse capture).
     Rectangle {
       anchors.fill: parent
-      radius: 8
+      radius: root.theme.r(8)
       visible: !capture.hasContent
       color: root.theme.alpha(root.theme.text, 0.06)
       border.width: 1
@@ -89,7 +89,7 @@ Item {
     anchors.margins: 10
     height: 18
     width: wsText.implicitWidth + 12
-    radius: 9
+    radius: root.theme.r(9)
     color: root.theme.alpha(root.theme.base, 0.7)
     border.width: 1
     border.color: root.theme.rimSoft
@@ -125,7 +125,7 @@ Item {
     anchors.margins: 8
     width: 22
     height: 22
-    radius: 11
+    radius: root.theme.r(11)
     color: closeMouse.containsMouse ? root.theme.urgent : root.theme.alpha(root.theme.base, 0.8)
     border.width: 1
     border.color: root.theme.rim

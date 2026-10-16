@@ -197,10 +197,10 @@ PanelWindow {
     Behavior on opacity { NumberAnimation { duration: 120 } }
     Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
 
-    GlassSurface {
+    Surface {
       anchors.fill: parent
       theme: root.theme
-      radius: 28
+      radius: root.theme.r(28)
       tint: root.theme.tintStrong
     }
 

@@ -77,7 +77,7 @@ Item {
         required property int index
         width: root.focused && index === 0 ? 12 : 5
         height: 5
-        radius: 2.5
+        radius: root.theme.r(2.5)
         color: root.focused ? root.theme.accent : root.theme.alpha(root.theme.text, 0.75)
         Behavior on width { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
       }

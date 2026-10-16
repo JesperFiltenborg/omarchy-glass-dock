@@ -23,7 +23,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    radius: 20
+    radius: root.theme.r(20)
     color: root.selected ? root.theme.selectedFill : root.theme.alpha(root.theme.text, 0.04)
     border.width: root.selected ? 2 : 1
     border.color: root.selected ? root.theme.selectedRim : root.theme.rimSoft
@@ -51,7 +51,7 @@ Item {
     Rectangle {
       anchors.fill: parent
       visible: !capture.hasContent
-      radius: 10
+      radius: root.theme.r(10)
       color: root.theme.alpha(root.theme.text, 0.06)
       Image {
         anchors.centerIn: parent
@@ -114,7 +114,7 @@ Item {
     anchors.margins: 6
     height: 22
     width: Math.max(22, badge.implicitWidth + 12)
-    radius: 11
+    radius: root.theme.r(11)
     color: root.theme.accent
     Text {
       id: badge

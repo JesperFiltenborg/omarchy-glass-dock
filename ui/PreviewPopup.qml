@@ -21,10 +21,10 @@ Item {
 
   onWindowsChanged: if (windows.length === 0) bar.closePopups()
 
-  GlassSurface {
+  Surface {
     anchors.fill: parent
     theme: root.theme
-    radius: 20
+    radius: root.theme.r(20)
     tint: root.theme.tintStrong
   }
 

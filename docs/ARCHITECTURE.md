@@ -9,15 +9,16 @@ GlassDock.qml            entry point: builds the objects below, exposes IPC targ
 ├── core/Settings.qml    ~/.config/omarchy/glassdock.json ⇄ settings.cfg.*
 ├── core/AppIndex.qml    app id → desktop entry, icon, display name, launch
 ├── core/WindowModel.qml Hyprland windows → per-app groups, MRU order, focus/close actions
-├── ui/GlassTheme.qml    colours and metrics derived from the Omarchy theme + settings
+├── ui/Theme.qml         design tokens for the chosen style (glass | omarchy), from the Omarchy theme
 ├── ui/Dock.qml          ×N, one layer surface per monitor (Variants over screens)
 │   ├── DockItem.qml       icon, magnification, dots, launch bounce, mouse actions
 │   ├── PreviewPopup.qml   hover: the app's window group as live thumbnails
 │   └── ContextMenu.qml    right click
 ├── ui/Switcher.qml      Alt+Tab overlay and its state machine
 │   └── SwitcherCard.qml   one app: live preview, icon, title, window-count badge
+├── ui/SettingsWindow.qml glass settings panel; controls write straight to settings.cfg
 ├── ui/WindowThumb.qml   live window thumbnail (ScreencopyView), shared by both
-├── ui/GlassSurface.qml  the glass pane every surface is drawn on
+├── ui/Surface.qml       the pane every surface is drawn on: glass layers, or qs.Ui BorderSurface
 └── hypr/glassdock.lua   Hyprland side: blur, layer rules, Alt+Tab binds
 ```
 
@@ -76,10 +77,18 @@ Each `Dock` is a bottom-anchored `PanelWindow` in the layer namespace
 `glassdock`. It's taller than the visible shelf so magnified icons and popups
 can draw above the shelf without a second surface:
 
-- **`exclusiveZone`** reserves only the shelf's height, so tiled windows
-  aren't pushed up by the headroom.
-- **`mask`** limits input to the shelf, the active popup and, with autohide
-  on, a 6 px edge trigger. The rest stays click-through.
+- **`exclusiveZone`** reserves only the shelf's resting height, so tiled
+  windows aren't pushed up by the headroom. It's 0 in overlay mode. With
+  show-on-hover the strip stays reserved while hidden, and that empty strip
+  is the hover zone.
+- **`mask`** limits input to `hotZone` and the active popup; the rest stays
+  click-through. `hotZone` is the shelf (or, while hidden, its resting
+  footprint), widened by `revealArea` when show-on-hover is on. One
+  HoverHandler on `stage`, the parent of every input item, drives reveal (after a short dwell) and hide (after
+  `hideDelay`), so there are no competing enter/leave events.
+- **Settings gate creation.** Docks aren't created until `Settings.ready`, so a
+  layer surface never starts with default values. A surface created with the
+  default exclusive zone would otherwise keep it.
 - **Blur** is applied by Hyprland's layer rule. `ignore_alpha = 0.12` leaves
   the fully transparent headroom unblurred. The glass tint must stay above
   that alpha, or it won't blur.
@@ -92,6 +101,24 @@ stable while icons resize under the pointer.
 Popups (`preview`, `menu`, `tooltip`) share one host item and one `Loader`.
 `popupKind` selects the component. To add a popup, add a `Component` and a
 kind.
+
+## Designs
+
+`settings.cfg.style` picks the design, and `Theme` turns it into tokens.
+Views never test the style themselves; they use these tokens:
+
+| Token                                    | Glass                     | Omarchy                                           |
+| ---------------------------------------- | ------------------------- | ------------------------------------------------- |
+| `tint` (shelf)                           | base colour at `glassOpacity` | `Color.bar.background`                        |
+| `tintStrong`, `panel` (raised surfaces)  | stronger tint             | `Color.popups.background`                         |
+| `rim`                                    | white at 0.2              | `Color.popups.border`, via `Border.localOrSurfaceSpec` |
+| `hoverFill`, `selectedFill`              | white and accent washes   | `Style.hoverFill`, `Style.selectedFill`           |
+| `r(n)`                                   | `n`                       | `min(n, Style.cornerRadius)`, which follows Hyprland rounding |
+| Toggles and sliders                      | accent and white          | the `qs.Ui` ToggleSwitch / PanelSlider formulas   |
+
+`Surface` draws the glass layers itself. For Omarchy it loads
+`qs.Ui.BorderSurface`, the same component the bar's popups use, so theme
+border gradients and per-side widths work automatically.
 
 ## The switcher
 
@@ -125,12 +152,12 @@ tap where IPC processes race — is replayed by `begin()` (`lastEarlyCommit`).
 
 | To add…                    | Change                                                         |
 | -------------------------- | -------------------------------------------------------------- |
-| A setting                  | A property on the `JsonAdapter` in `core/Settings.qml`; read it via `settings.cfg.name` |
+| A setting                  | A default in `Settings.defaults`, a matching `JsonAdapter` property, and a control in `ui/SettingsWindow.qml` |
 | An IPC command             | A typed function on the `IpcHandler` in `GlassDock.qml`        |
 | Per-window data (urgency, etc.) | `WindowModel`; views pick it up via `dock.windows`        |
 | A context-menu action      | A `MenuRow` in `ui/ContextMenu.qml`                            |
 | A new popup kind           | A `Component` in `ui/Dock.qml`, then set `popupKind`           |
-| Glass styling              | `ui/GlassTheme.qml` (tokens) and `ui/GlassSurface.qml` (drawing) |
+| Styling, or a third design | `ui/Theme.qml` (tokens) and `ui/Surface.qml` (drawing). Views only use theme tokens and `theme.r(radius)`, so a new design is a new branch there |
 | Another dock edge          | `ui/Dock.qml` anchors and layout; the data layer needs no change |
 
 ## Gotchas

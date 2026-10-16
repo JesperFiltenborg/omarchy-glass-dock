@@ -4,6 +4,10 @@ A liquid-glass application dock for [Omarchy](https://omarchy.org) (Hyprland +
 Quickshell), with per-app **window groups**, **live window previews**, and an
 **Alt+Tab switcher** built on the same groups.
 
+- **Two designs.** Pick **Glass** or **Omarchy** in Dock Settings. Omarchy
+  draws every surface with the shell's own components and tokens: bar and
+  popup colours, the theme's border, and Hyprland's corner rounding. The dock
+  then looks like part of the bar.
 - **Glass look.** Translucent shelf tinted from your Omarchy theme, real
   Hyprland blur behind it, a specular sheen and a bright rim. It follows
   `omarchy theme set` live.
@@ -23,7 +27,14 @@ Quickshell), with per-app **window groups**, **live window previews**, and an
 - **Pinned apps.** Pinned apps sit left of the separator and running apps sit
   right of it. Chromium web apps resolve to their own desktop entries and icons.
 - **Multi-monitor.** One dock per monitor, or only the monitors you list.
-- **Autohide.** Optional; hover the bottom edge to reveal the dock.
+- **Show on hover.** Optional. The dock stays hidden until the pointer comes
+  near it (a configurable area around the dock, not just the dock itself),
+  then slides and fades in.
+- **Overlay mode.** Optional. The dock floats over your windows instead of
+  reserving space at the bottom of the screen.
+- **Settings window.** A panel with collapsible sections, live controls for
+  every option, and your pinned apps. Open it from Super+Space → System → Dock Settings, or from
+  any app's right-click menu.
 
 ## Install
 
@@ -58,6 +69,15 @@ glassdock_blur = false     -- manage blur yourself
 glassdock_alt_tab = false  -- keep Omarchy's Alt+Tab
 ```
 
+### Add Dock Settings to the Super+Space menu
+
+Add this line inside the object in `~/.config/omarchy/extensions/omarchy-menu.jsonc`.
+It appears under **System**, and the menu reloads on save:
+
+```jsonc
+"system.dock-settings": {"icon":"󱂩","label":"Dock Settings","description":"Glass Dock: size, glass, previews, Alt+Tab, pinned apps","aliases":["glassdock","dock"],"action":"omarchy-shell glassdock openSettings"},
+```
+
 Uninstall with `omarchy plugin remove jesperfiltenborg.glassdock` and delete
 the two lines from `hyprland.lua`.
 
@@ -69,7 +89,7 @@ the two lines from `hyprland.lua`.
 | Dock     | Middle click              | New window                                              |
 | Dock     | Wheel                     | Cycle the app's windows                                 |
 | Dock     | Hover                     | Live previews of the app's windows                      |
-| Dock     | Right click               | Menu: windows, New Window, Keep in Dock, Close          |
+| Dock     | Right click               | Menu: windows, New Window, Keep in Dock, Dock Settings…, Close |
 | Preview  | Click, middle click or ✕  | Focus, or close the window                              |
 | Anywhere | Alt+Tab, Alt+Shift+Tab    | Next or previous app                                    |
 | Anywhere | `` Alt+` ``, `` Alt+Shift+` `` | Next or previous window of the selected app        |
@@ -79,6 +99,11 @@ the two lines from `hyprland.lua`.
 | Switcher | Alt+W or Alt+Q            | Close the selected window                               |
 
 ## Configuration
+
+The easiest way to change settings is the **Dock Settings** window: Super+Space
+→ System → Dock Settings, "Dock Settings…" in any app's right-click menu, or
+`omarchy-shell glassdock settings`. Changes apply instantly. **Reset to
+defaults** restores every option but keeps your pinned apps.
 
 Settings live in `~/.config/omarchy/glassdock.json`. The dock creates the file
 with defaults on first run and picks up edits immediately.
@@ -91,9 +116,12 @@ with defaults on first run and picks up edits immediately.
 | `magnification`                | `1.55`  | Hover zoom (`1` disables it)                         |
 | `magnificationRange`           | `3`     | How many neighbouring icons the zoom reaches         |
 | `margin`                       | `10`    | Gap between the dock and the screen edge             |
-| `autoHide`                     | `false` | Hide until the bottom edge is hovered                |
-| `autoHideDelay`                | `600`   | ms before hiding                                     |
+| `showOnHover`                  | `false` | Hidden until the pointer comes near the dock         |
+| `revealArea`                   | `24`    | px above the dock's spot that also reveal it (6× that to each side) |
+| `hideDelay`                    | `600`   | ms before a show-on-hover dock hides again           |
+| `overlay`                      | `false` | Float over windows instead of reserving space        |
 | `showRunningSeparator`         | `true`  | Divider between pinned and running apps              |
+| `style`                        | `"glass"` | Design: `"glass"` or `"omarchy"` (follows the Omarchy style guide) |
 | `glassOpacity`                 | `0.32`  | Tint strength; keep it above the 0.12 blur threshold |
 | `glassHighlight`               | `0.14`  | Strength of the top-edge sheen                       |
 | `cornerRadius`                 | `24`    | Shelf corner radius                                  |
@@ -101,7 +129,7 @@ with defaults on first run and picks up edits immediately.
 | `previewWidth`                 | `240`   | Thumbnail width                                      |
 | `previewDelay`                 | `380`   | Hover time before previews open (ms)                 |
 | `maxDots`                      | `3`     | Window dots shown per app                            |
-| `switcher`                     | `true`  | Enable the Alt+Tab switcher                          |
+| `switcher`                     | `true`  | Use the switcher for Alt+Tab; off falls back to plain window cycling |
 | `switcherCardWidth`            | `280`   | Switcher card width                                  |
 | `switcherRevealDelay`          | `90`    | ms before the overlay appears; quicker taps switch without it |
 | `switcherCurrentWorkspaceOnly` | `false` | Limit Alt+Tab to the current workspace               |
@@ -120,9 +148,11 @@ omarchy-shell glassdock <method> [arg]
 | `next`, `prev`                         | Open the switcher, or step to the next/previous app |
 | `nextWindow`, `prevWindow`             | Step through the selected app's windows           |
 | `commit`, `cancel`                     | Switch to the selection, or close the switcher    |
+| `settings`, `openSettings`, `closeSettings` | Toggle, open or close the settings window    |
 | `toggle`, `show`, `hide`               | Show or hide the dock                             |
 | `pin <appId>`, `unpin <appId>`, `pinFocused` | Manage pinned apps                          |
 | `state`                                | JSON dump of what the dock sees, for debugging    |
+| `config`                               | JSON dump of the settings the dock is running with |
 
 For example, to bind a key that toggles the dock:
 
@@ -133,8 +163,10 @@ o.bind("SUPER + SHIFT + D", "Toggle dock", "omarchy-shell -q glassdock toggle")
 ## Known limitations
 
 - The dock is bottom-only for now. With Omarchy's bar also at the bottom, the
-  dock sits above the bar, and autohide reveals from the bar's top edge
-  rather than the screen edge.
+  dock sits above the bar, so the reveal area is above the bar too.
+- With Show on hover and Act as overlay both on, the reveal area lies over
+  your windows. Clicks in it (just above the dock's spot) go to the dock, not
+  the window. Set Reveal area to 0 to keep that to the dock's own footprint.
 - Alt+Tab can't be exercised with `wtype` or other virtual keyboards, because
   Hyprland ignores their binds. Use the IPC methods to script it.
 
