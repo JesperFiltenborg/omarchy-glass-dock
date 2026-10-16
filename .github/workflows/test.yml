@@ -1,7 +1,12 @@
 name: test
 
 on:
+  # Branches are tested through their pull request; pushes run only for main
+  # and release tags. (A push run would report `conventions` as skipped,
+  # which GitHub can count as passing.)
   push:
+    branches: [main]
+    tags: ["v*"]
   pull_request:
 
 jobs:
