@@ -4,6 +4,8 @@ A liquid-glass application dock for [Omarchy](https://omarchy.org) (Hyprland +
 Quickshell), with per-app **window groups**, **live window previews**, and an
 **Alt+Tab switcher** built on the same groups.
 
+![Glass Dock on the Tokyo Night theme](preview.png)
+
 - **Two designs.** Pick **Glass** or **Omarchy** in Dock Settings. Omarchy
   draws every surface with the shell's own components and tokens: bar and
   popup colours, the theme's border, and Hyprland's corner rounding. The dock
@@ -38,6 +40,16 @@ Quickshell), with per-app **window groups**, **live window previews**, and an
 - **Settings window.** A panel with collapsible sections, live controls for
   every option, and your pinned apps. Open it from Super+Space → System → Dock Settings, or from
   any app's right-click menu.
+
+## Requirements
+
+- **Omarchy 4**, with its Quickshell-based shell (`omarchy-shell`, Quickshell
+  0.3). Glass Dock runs as a plugin inside it.
+- **Hyprland 0.55 or newer**, with the Lua config
+  (`~/.config/hypr/hyprland.lua`) that Omarchy 4 uses.
+
+There are no other dependencies and nothing to install from packages. At
+runtime the plugin only talks to Hyprland, through its IPC and `hyprctl`.
 
 ## Install
 
@@ -106,6 +118,8 @@ The show/hide key is bound by the running plugin, not by `hyprland.lua`, so it
 goes away by itself when the plugin is disabled or removed.
 
 ## Controls
+
+![The Alt+Tab switcher, with window previews blurred for this screenshot](docs/images/switcher.png)
 
 | Where    | Input                     | Action                                                  |
 | -------- | ------------------------- | ------------------------------------------------------- |
