@@ -119,6 +119,8 @@ goes away by itself when the plugin is disabled or removed.
 
 ## Controls
 
+![The Alt+Tab switcher, with window previews blurred for this screenshot](docs/images/switcher.png)
+
 | Where    | Input                     | Action                                                  |
 | -------- | ------------------------- | ------------------------------------------------------- |
 | Dock     | Left click                | Launch, focus the latest window, or step to the next one |
