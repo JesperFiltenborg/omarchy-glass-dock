@@ -7,11 +7,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    # Arch, like Omarchy: same Qt (qmllint) and Lua versions as users run.
+    # Arch, like Omarchy: same Qt (qmllint), Quickshell and Lua versions as
+    # users run. Quickshell provides the type info qmllint checks against.
     container: archlinux:latest
     steps:
       - name: Install tools
-        run: pacman -Syu --noconfirm --needed git nodejs lua qt6-declarative jq
+        run: pacman -Syu --noconfirm --needed git nodejs lua qt6-declarative quickshell jq
 
       - uses: actions/checkout@v4
 

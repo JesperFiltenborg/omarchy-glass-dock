@@ -200,8 +200,9 @@ scripts/test.sh e2e        # live smoke test in your Omarchy session
 scripts/test.sh e2e --sync # install the working tree first, then smoke test
 ```
 
-You need Node 20 or newer, Lua 5.4, `qmllint` (from `qt6-declarative`) and
-`jq`. There are no packages to install.
+You need Node 20 or newer, Lua 5.4, `qmllint` (from `qt6-declarative`),
+`quickshell` (for its QML type info) and `jq`. An Omarchy install already has
+all of these except possibly Lua. There are no packages to install.
 
 | Suite      | What it covers |
 | ---------- | -------------- |
