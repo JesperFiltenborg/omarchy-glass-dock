@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Feature request
+    url: https://github.com/JesperFiltenborg/omarchy-glass-dock/pulls
+    about: 'For ideas or feature requests, send in a pull request'
+  - name: Support Questions & Other
+    url: https://github.com/JesperFiltenborg/omarchy-glass-dock#readme
+    about: 'This repository is only for reporting bugs. If you have a question or need help setting up the dock, start with the README:'
+  - name: Documentation issue
+    url: https://github.com/JesperFiltenborg/omarchy-glass-dock/pulls
+    about: For documentation issues, open a pull request with the fix

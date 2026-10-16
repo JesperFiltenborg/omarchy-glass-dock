@@ -5,13 +5,16 @@ By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Reporting a bug
 
-Open an issue with:
+Open an issue with the **Bug Report** form. It asks for:
 
+- your Glass Dock, Omarchy, Hyprland and Quickshell versions
 - what you did, what you expected, and what happened
-- your Omarchy and Hyprland versions (`omarchy version`, `hyprctl version`)
 - the plugin's log lines: `journalctl --user --since "10 min ago" | grep -i glassdock`
 - `omarchy-shell glassdock config` output, if it's about settings
 - a screenshot or short recording, if it's visual
+
+Issues are for bugs only. Send feature ideas and documentation fixes as a
+pull request.
 
 ## Making a change
 

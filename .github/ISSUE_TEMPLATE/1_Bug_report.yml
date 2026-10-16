@@ -1,0 +1,62 @@
+name: Bug Report
+description: "Report something that's broken."
+body:
+  - type: markdown
+    attributes:
+      value: "Please read [the contribution guide](https://github.com/JesperFiltenborg/omarchy-glass-dock/blob/main/CONTRIBUTING.md#reporting-a-bug) and the README's [Known limitations](https://github.com/JesperFiltenborg/omarchy-glass-dock#known-limitations) before submitting a bug report."
+  - type: input
+    attributes:
+      label: Glass Dock Version
+      description: Provide the Glass Dock version you are using (shown at the top of Dock Settings).
+      placeholder: 1.2.0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Omarchy Version
+      description: Provide the output of `omarchy version`.
+      placeholder: 4.0.4-1
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Hyprland Version
+      description: Provide the version tag from `hyprctl version`.
+      placeholder: v0.56.2
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Quickshell Version
+      description: Provide the output of `quickshell --version`.
+      placeholder: 0.3.1
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Monitors
+      description: If applicable, provide your monitor setup (from `hyprctl monitors`).
+      placeholder: "HDMI-A-1 2560x1440 + DP-3 3440x1440, scale 1"
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Description
+      description: Provide a detailed description of the issue you are facing. Screenshots or a short recording help with visual problems.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps To Reproduce
+      description: Provide detailed steps to reproduce your issue, starting from a running dock.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Logs and Settings
+      description: |
+        If applicable, paste the plugin's log lines and the settings the dock runs with:
+        `journalctl --user --since "10 min ago" | grep -i glassdock` and `omarchy-shell glassdock config`
+      render: shell
+    validations:
+      required: false
